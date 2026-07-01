@@ -6,7 +6,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -94,9 +93,9 @@ public class Presentacion extends JPanel {
 
     private BufferedImage cargarOGenerarTextura() {
         try {
-            File archivo = new File("textura.png");
-            if (archivo.exists()) {
-                BufferedImage img = ImageIO.read(archivo);
+            var recurso = Presentacion.class.getResource("textura.png");
+            if (recurso != null) {
+                BufferedImage img = ImageIO.read(recurso);
                 if (img != null) return img;
             }
         } catch (Exception ignored) {}
@@ -227,7 +226,7 @@ public class Presentacion extends JPanel {
         Vertice b = new Vertice(640, 160, 0.7f, 1f,   0f, 1f, 1f, 1f);
         Vertice c = new Vertice(400, 500, 0.3f, 0.5f, 1f, 1f, 1f, 1f);
 
-        rellenarTriangulo(a, b, c, true, false, true, false);
+        rellenarTriangulo(a, b, c,true, false, true, false);
     }
 
     // MODO 2: COLOR

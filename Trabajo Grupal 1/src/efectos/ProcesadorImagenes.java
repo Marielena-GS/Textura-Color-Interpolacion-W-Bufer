@@ -1,0 +1,754 @@
+package efectos;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
+import java.util.Random;
+
+/**
+ * Motor central de procesamiento de imagenes.
+ *
+ * Contiene todos los efectos del grupo unificados en metodos estaticos. Cada
+ * metodo recibe una BufferedImage de entrada y devuelve una NUEVA imagen con el
+ * efecto aplicado — nunca modifica la imagen original.
+ */
+public class ProcesadorImagenes {
+
+	private static final Random random = new Random();
+
+	private static void validar(BufferedImage img) {
+		if (img == null) {
+			throw new IllegalArgumentException("Se necesita cargar una imagen primero.");
+		}
+	}
+
+	private static int clamp(int valor) {
+		return Math.max(0, Math.min(255, valor));
+	}
+
+	/**
+	 * Genera una imagen con pixeles de colores completamente aleatorios.
+	 *
+	 * @param ancho ancho en pixeles de la imagen a generar
+	 * @param alto  alto en pixeles de la imagen a generar
+	 * @return nueva BufferedImage con pixeles aleatorios
+	 */
+	public static BufferedImage imagenAleatoria(int ancho, int alto) {
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int r = random.nextInt(256);
+				int g = random.nextInt(256);
+				int b = random.nextInt(256);
+				resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Copia pixel a pixel la imagen de entrada.
+	 *
+	 * @param img imagen de entrada
+	 * @return copia exacta de la imagen
+	 */
+	public static BufferedImage copiarImagen(BufferedImage img) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				resultado.setRGB(x, y, img.getRGB(x, y));
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Aplica convolucion manual 3x3 con el kernel. El kernel debe tener exactamente
+	 * 9 elementos.
+	 *
+	 * @param img    imagen de entrada
+	 * @param kernel arreglo de 9 floats (fila por fila)
+	 * @return imagen con convolucion aplicada
+	 */
+	public static BufferedImage convolucionManual(BufferedImage img, float[][] kernel) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+
+		for (int y = 1; y < alto - 1; y++) {
+			for (int x = 1; x < ancho - 1; x++) {
+				float sumaR = 0, sumaG = 0, sumaB = 0;
+
+				for (int i = -1; i < 2; i++) {
+					for (int j = -1; j < 2; j++) {
+						int pixel = img.getRGB(x + j, y + i);
+						int r = (pixel >> 16) & 0xFF;
+						int g = (pixel >> 8) & 0xFF;
+						int b = (pixel >> 0) & 0xFF;
+						sumaR += r * kernel[i + 1][j + 1];
+						sumaG += g * kernel[i + 1][j + 1];
+						sumaB += b * kernel[i + 1][j + 1];
+					}
+				}
+
+				int r = clamp((int) sumaR);
+				int g = clamp((int) sumaG);
+				int b = clamp((int) sumaB);
+				resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Aplica convolucion usando ConvolveOp de Java. Mas eficiente que la manual
+	 * para imagenes grandes.
+	 *
+	 * @param img    imagen de entrada
+	 * @param kernel arreglo plano de floats (ej. Kernels.kEnfoque)
+	 * @return imagen con convolucion aplicada
+	 */
+	public static BufferedImage convolucionOp(BufferedImage img, float[] kernel) {
+		validar(img);
+		int tamanio = (int) Math.sqrt(kernel.length);
+		Kernel k = new Kernel(tamanio, tamanio, kernel);
+		ConvolveOp op = new ConvolveOp(k, ConvolveOp.EDGE_NO_OP, null);
+
+		// ConvolveOp requiere TYPE_INT_RGB
+		BufferedImage rgbImg = toRGB(img);
+		return op.filter(rgbImg, null);
+	}
+
+	/**
+	 * Genera 10 imagenes aplicando convolucion con intensidad creciente (efecto
+	 * amanecer). Retorna un arreglo con las 10 imagenes.
+	 *
+	 * @param img imagen de entrada
+	 * @return arreglo de 10 BufferedImage (indices 0..9)
+	 */
+	public static BufferedImage[] convolucionAmanecer(BufferedImage img) {
+		validar(img);
+		BufferedImage[] imagenes = new BufferedImage[10];
+		float[][] matrizAmanecer = { { 0, 0, 0 }, { 0, 1, 0 }, { 0, 0, 0 } };
+
+		for (int i = 0; i < 10; i++) {
+			float intensidad = i / 9.0f;
+			int ancho = img.getWidth();
+			int alto = img.getHeight();
+			BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+
+			for (int y = 1; y < alto - 1; y++) {
+				for (int x = 1; x < ancho - 1; x++) {
+					float sumaR = 0, sumaG = 0, sumaB = 0;
+					for (int dy = -1; dy < 2; dy++) {
+						for (int dx = -1; dx < 2; dx++) {
+							int pixel = img.getRGB(x + dx, y + dy);
+							int r = (pixel >> 16) & 0xFF;
+							int g = (pixel >> 8) & 0xFF;
+							int b = (pixel >> 0) & 0xFF;
+							sumaR += r * matrizAmanecer[dy + 1][dx + 1];
+							sumaG += g * matrizAmanecer[dy + 1][dx + 1];
+							sumaB += b * matrizAmanecer[dy + 1][dx + 1];
+						}
+					}
+					int r = clamp((int) (sumaR * intensidad));
+					int g = clamp((int) (sumaG * intensidad));
+					int b = clamp((int) (sumaB * intensidad));
+					resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+				}
+			}
+			imagenes[i] = resultado;
+		}
+		return imagenes;
+	}
+
+	/**
+	 * Blanco y negro: cada canal se convierte a 0 o 255 segun luminancia.
+	 */
+	public static BufferedImage blancoNegro(BufferedImage img) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int a = (pixel >> 24) & 0xFF;
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+
+				int gris = (int) (0.2126 * r + 0.7152 * g + 0.0722 * b);
+				int bw = (gris >= 128) ? 255 : 0;
+
+				resultado.setRGB(x, y, (a << 24) | (bw << 16) | (bw << 8) | bw);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Escala de grises con N niveles. N=2 → solo blanco/negro, N=255 → grises
+	 * continuos.
+	 *
+	 * @param img imagen de entrada
+	 * @param N   numero de niveles de gris (minimo 2)
+	 */
+	public static BufferedImage escalaGrises(BufferedImage img, int N) {
+		validar(img);
+		if (N < 2)
+			N = 2;
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+		float paso = 255f / (N - 1);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int a = (pixel >> 24) & 0xFF;
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+
+				int gris = (int) (0.2126 * r + 0.7152 * g + 0.0722 * b);
+				int nivel = Math.round(gris / paso);
+				gris = clamp(Math.round(nivel * paso));
+
+				resultado.setRGB(x, y, (a << 24) | (gris << 16) | (gris << 8) | gris);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Escala de grises usando el canal V (Value) del espacio HSV
+	 * 
+	 */
+	public static BufferedImage escalaGrisesHSV(BufferedImage img) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+
+				float[] hsv = Color.RGBtoHSB(r, g, b, null);
+				// saturation = 0 para grises
+				int pixelAux = Color.HSBtoRGB(hsv[0], 0, hsv[2]);
+				resultado.setRGB(x, y, pixelAux);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Efecto Retro 1: reduce colores a N niveles por canal RGB
+	 *
+	 * @param img imagen de entrada
+	 * @param N   numero de niveles por canal (2, 4, 8, 64, 128, 255)
+	 */
+	public static BufferedImage efectorRetro1(BufferedImage img, int N) {
+		validar(img);
+		if (N < 2)
+			N = 2;
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+		float paso = 255f / (N - 1);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int a = (pixel >> 24) & 0xFF;
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+
+				r = clamp(Math.round(Math.round(r / paso) * paso));
+				g = clamp(Math.round(Math.round(g / paso) * paso));
+				b = clamp(Math.round(Math.round(b / paso) * paso));
+
+				resultado.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Efecto Retro 2: reduce colores a N niveles en solo 2 canales
+	 *
+	 * @param img  imagen de entrada
+	 * @param N    numero de niveles (2, 4, 8, 64, 128, 255)
+	 * @param modo canal a usar: "RG", "RB" o "GB"
+	 */
+	public static BufferedImage efectorRetro2(BufferedImage img, int N, String modo) {
+		validar(img);
+		if (N < 2)
+			N = 2;
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+		float paso = 255f / (N - 1);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int a = (pixel >> 24) & 0xFF;
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+
+				if (modo.equalsIgnoreCase("RG")) {
+					r = clamp(Math.round(Math.round(r / paso) * paso));
+					g = clamp(Math.round(Math.round(g / paso) * paso));
+					b = 0;
+				} else if (modo.equalsIgnoreCase("RB")) {
+					r = clamp(Math.round(Math.round(r / paso) * paso));
+					g = 0;
+					b = clamp(Math.round(Math.round(b / paso) * paso));
+				} else { // GB
+					r = 0;
+					g = clamp(Math.round(Math.round(g / paso) * paso));
+					b = clamp(Math.round(Math.round(b / paso) * paso));
+				}
+				resultado.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Filtro negativo: invierte todos los canales RGB
+	 */
+	public static BufferedImage filtroNegativo(BufferedImage img) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+				resultado.setRGB(x, y, ((255 - r) << 16) | ((255 - g) << 8) | (255 - b));
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Genera una imagen con el histograma RGB de la imagen de entrada.
+	 */
+	public static BufferedImage generarHistograma(BufferedImage img) {
+		validar(img);
+
+		final int widthHistograma = 800;
+		final int heightHistograma = 600;
+		int[] histogramaRed = new int[256];
+		int[] histogramaGreen = new int[256];
+		int[] histogramaBlue = new int[256];
+
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int red = (pixel >> 16) & 0xFF;
+				int green = (pixel >> 8) & 0xFF;
+				int blue = pixel & 0xFF;
+
+				histogramaRed[red]++;
+				histogramaGreen[green]++;
+				histogramaBlue[blue]++;
+			}
+		}
+
+		BufferedImage histograma = new BufferedImage(widthHistograma, heightHistograma, BufferedImage.TYPE_INT_RGB);
+		Graphics2D graphics = histograma.createGraphics();
+		graphics.setColor(Color.BLACK);
+		graphics.fillRect(0, 0, widthHistograma, heightHistograma);
+		graphics.setStroke(new java.awt.BasicStroke(2));
+
+		int maximoGeneral = Math.max(maximoValorHistograma(histogramaRed),
+				Math.max(maximoValorHistograma(histogramaGreen), maximoValorHistograma(histogramaBlue)));
+		float escalaX = widthHistograma / 256.0f;
+		float escalaY = maximoGeneral == 0 ? 0 : heightHistograma * 1.0f / maximoGeneral;
+
+		dibujarHistograma(graphics, histogramaRed, Color.RED, escalaX, escalaY, heightHistograma);
+		dibujarHistograma(graphics, histogramaGreen, Color.GREEN, escalaX, escalaY, heightHistograma);
+		dibujarHistograma(graphics, histogramaBlue, Color.BLUE, escalaX, escalaY, heightHistograma);
+
+		graphics.dispose();
+		return histograma;
+	}
+
+	/**
+	 * Modifica saturacion y brillo en espacio HSV.
+	 *
+	 * @param img              imagen de entrada
+	 * @param factorSaturacion factor para saturacion (>1 satura mas)
+	 * @param factorBrillo     factor para brillo/value (>1 aclara)
+	 */
+	public static BufferedImage filtrosHSV(BufferedImage img, float factorSaturacion, float factorBrillo) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+
+				float[] hsv = Color.RGBtoHSB(r, g, b, null);
+				hsv[1] = Math.min(1f, hsv[1] * factorSaturacion);
+				hsv[2] = Math.min(1f, hsv[2] * factorBrillo);
+
+				resultado.setRGB(x, y, Color.HSBtoRGB(hsv[0], hsv[1], hsv[2]));
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Saturacion HSV avanzada: modifica RGB antes de convertir a HSV.
+	 *
+	 * @param img     imagen de entrada
+	 * @param factorS factor de saturacion (ej. 0.4f)
+	 * @param factorB factor de brillo (ej. 2.4f)
+	 */
+	public static BufferedImage saturacionHSV(BufferedImage img, float factorS, float factorB) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int a = (pixel >> 24) & 0xFF;
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+
+				// Reducir intensidad como en tu codigo original
+				r = (int) (r * 0.2);
+				g = (int) (g * 0.5);
+				b = (int) (b * 0.2);
+
+				float[] hsv = Color.RGBtoHSB(r, g, b, null);
+				hsv[1] = Math.min(1f, hsv[1] * factorS);
+				hsv[2] = Math.min(1f, hsv[2] * factorB);
+
+				int pixelNuevo = Color.HSBtoRGB(hsv[0], hsv[1], hsv[2]);
+				resultado.setRGB(x, y, pixelNuevo);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Brillo por canal: suma un valor fijo a cada canal RGB
+	 *
+	 * @param img    imagen de entrada
+	 * @param brillo valor a sumar a cada canal (puede ser negativo para oscurecer)
+	 */
+	public static BufferedImage brilloPorCanal(BufferedImage img, int brillo) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int r = clamp(((pixel >> 16) & 0xFF) + brillo);
+				int g = clamp(((pixel >> 8) & 0xFF) + brillo);
+				int b = clamp(((pixel >> 0) & 0xFF) + brillo);
+				resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Canal Alpha: modifica transparencia por factor
+	 *
+	 * @param img                 imagen de entrada
+	 * @param factorTransparencia factor para multiplicar el alpha (ej. 1.5f)
+	 */
+	public static BufferedImage canalAlpha(BufferedImage img, float factorTransparencia) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int alpha = clamp((int) (((pixel >> 24) & 0xFF) * factorTransparencia));
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+				resultado.setRGB(x, y, (alpha << 24) | (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Desvanecimiento circular: centro opaco, bordes transparentes
+	 */
+	public static BufferedImage desvanecimientoCircular(BufferedImage img) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+		double centroX = (ancho - 1) / 2.0;
+		double centroY = (alto - 1) / 2.0;
+		double maxDistancia = Math.sqrt(centroX * centroX + centroY * centroY);
+		if (maxDistancia == 0)
+			maxDistancia = 1;
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				int a = (pixel >> 24) & 0xFF;
+				int r = (pixel >> 16) & 0xFF;
+				int g = (pixel >> 8) & 0xFF;
+				int b = (pixel >> 0) & 0xFF;
+
+				double distancia = Math.sqrt((x - centroX) * (x - centroX) + (y - centroY) * (y - centroY));
+				a = clamp((int) (255 * (1.0 - distancia / maxDistancia)));
+				resultado.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Vidrio esmerilado: toma un vecino aleatorio dentro de un radio para
+	 * simular difusion tipo cristal.
+	 */
+	public static BufferedImage vidrioEsmerilado(BufferedImage img) {
+		return vidrioEsmerilado(img, 3);
+	}
+
+	public static BufferedImage vidrioEsmerilado(BufferedImage img, int radio) {
+		validar(img);
+		int r = Math.max(1, radio);
+		int w = img.getWidth(), h = img.getHeight();
+		BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		java.util.concurrent.ThreadLocalRandom rnd = java.util.concurrent.ThreadLocalRandom.current();
+
+		for (int y = 0; y < h; y++) {
+			for (int x = 0; x < w; x++) {
+				int nx = Math.max(0, Math.min(w - 1, x + rnd.nextInt(-r, r + 1)));
+				int ny = Math.max(0, Math.min(h - 1, y + rnd.nextInt(-r, r + 1)));
+				out.setRGB(x, y, img.getRGB(nx, ny));
+			}
+		}
+		return out;
+	}
+
+
+	/**
+	 * Genera un degradado horizontal (izquierda a derecha).
+	 *
+	 * @param ancho  ancho de la imagen
+	 * @param alto   alto de la imagen
+	 * @param color1 color inicial (izquierda)
+	 * @param color2 color final (derecha)
+	 */
+	public static BufferedImage degradadoHorizontal(int ancho, int alto, Color color1, Color color2) {
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		for (int x = 0; x < ancho; x++) {
+			float t = (ancho > 1) ? (float) x / (ancho - 1) : 0f;
+			int r = clamp((int) (color1.getRed() * (1 - t) + color2.getRed() * t));
+			int g = clamp((int) (color1.getGreen() * (1 - t) + color2.getGreen() * t));
+			int b = clamp((int) (color1.getBlue() * (1 - t) + color2.getBlue() * t));
+			for (int y = 0; y < alto; y++) {
+				resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Genera un degradado vertical (arriba hacia abajo).
+	 */
+	public static BufferedImage degradadoVertical(int ancho, int alto, Color color1, Color color2) {
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		for (int y = 0; y < alto; y++) {
+			float t = (alto > 1) ? (float) y / (alto - 1) : 0f;
+			int r = clamp((int) (color1.getRed() * (1 - t) + color2.getRed() * t));
+			int g = clamp((int) (color1.getGreen() * (1 - t) + color2.getGreen() * t));
+			int b = clamp((int) (color1.getBlue() * (1 - t) + color2.getBlue() * t));
+			for (int x = 0; x < ancho; x++) {
+				resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Genera un degradado radial (desde el centro hacia los bordes).
+	 */
+	public static BufferedImage degradadoRadial(int ancho, int alto, Color colorCentro, Color colorBorde) {
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		double cx = (ancho - 1) / 2.0;
+		double cy = (alto - 1) / 2.0;
+		double maxD = Math.sqrt(cx * cx + cy * cy);
+		if (maxD == 0)
+			maxD = 1;
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				double dist = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+				float t = (float) Math.min(1.0, dist / maxD);
+				int r = clamp((int) (colorCentro.getRed() * (1 - t) + colorBorde.getRed() * t));
+				int g = clamp((int) (colorCentro.getGreen() * (1 - t) + colorBorde.getGreen() * t));
+				int b = clamp((int) (colorCentro.getBlue() * (1 - t) + colorBorde.getBlue() * t));
+				resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Gradiente radial superpuesto sobre la imagen. Mezcla la imagen con un
+	 * gradiente radial al 50%.
+	 */
+	public static BufferedImage gradienteRadial(BufferedImage img) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage gradiente = degradadoRadial(ancho, alto, new Color(255, 200, 50), new Color(30, 0, 80));
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int p1 = img.getRGB(x, y);
+				int p2 = gradiente.getRGB(x, y);
+				int r = (((p1 >> 16) & 0xFF) + ((p2 >> 16) & 0xFF)) / 2;
+				int g = (((p1 >> 8) & 0xFF) + ((p2 >> 8) & 0xFF)) / 2;
+				int b = (((p1 >> 0) & 0xFF) + ((p2 >> 0) & 0xFF)) / 2;
+				resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
+	 * Recorte de bits: extrae solo los bits altos de cada canal. Simula reduccion
+	 * de profundidad de color.
+	 *
+	 * @param img           imagen de entrada
+	 * @param bitsARecortar mascara de bits (ej. 0b1111 para 4 bits)
+	 */
+	public static BufferedImage recorteBits(BufferedImage img, int mascara, boolean escalar) {
+	    validar(img);
+
+	    int ancho = img.getWidth();
+	    int alto = img.getHeight();
+	    BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+	    // 15 = 4 bits, 3 = 2 bits, 1 = 1 bit
+	    int niveles = mascara + 1;     // 16, 4, 2
+	    int paso = 256 / niveles;      // 16, 64, 128
+	    int maxSinEscalar = 256 - paso; // 240, 192, 128
+
+	    for (int y = 0; y < alto; y++) {
+	        for (int x = 0; x < ancho; x++) {
+	            int pixel = img.getRGB(x, y);
+	            Color color = new Color(pixel, true);
+
+	            int a = color.getAlpha();
+
+	            int r = (color.getRed()   / paso) * paso;
+	            int g = (color.getGreen() / paso) * paso;
+	            int b = (color.getBlue()  / paso) * paso;
+
+	            if (escalar && maxSinEscalar > 0) {
+	                r = (r * 255) / maxSinEscalar;
+	                g = (g * 255) / maxSinEscalar;
+	                b = (b * 255) / maxSinEscalar;
+	            }
+
+	            resultado.setRGB(
+	                x, y,
+	                (a << 24) | (clamp(r) << 16) | (clamp(g) << 8) | clamp(b)
+	            );
+	        }
+	    }
+
+	    return resultado;
+	}
+
+	/**
+	 * Convierte una BufferedImage a TYPE_INT_RGB (necesario para ConvolveOp).
+	 */
+	private static BufferedImage toRGB(BufferedImage img) {
+		if (img.getType() == BufferedImage.TYPE_INT_RGB)
+			return img;
+		BufferedImage rgb = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
+		rgb.getGraphics().drawImage(img, 0, 0, null);
+		return rgb;
+	}
+
+	private static void dibujarHistograma(Graphics2D graphics, int[] histograma, Color color,
+			float escalaX, float escalaY, int heightHistograma) {
+		graphics.setColor(color);
+		for (int i = 1; i < histograma.length; i++) {
+			int x1 = (int) (escalaX * (i - 1));
+			int y1 = heightHistograma - (int) (escalaY * histograma[i - 1]);
+			int x2 = (int) (escalaX * i);
+			int y2 = heightHistograma - (int) (escalaY * histograma[i]);
+			graphics.drawLine(x1, y1, x2, y2);
+		}
+	}
+
+	private static int maximoValorHistograma(int[] histograma) {
+		int maxValor = 0;
+		for (int valor : histograma) {
+			if (valor > maxValor) {
+				maxValor = valor;
+			}
+		}
+		return maxValor;
+	}
+	
+	//nuevo metodo
+	public static boolean tieneTransparenciaReal(BufferedImage img) {
+	    if (img == null || !img.getColorModel().hasAlpha()) return false;
+
+	    for (int y = 0; y < img.getHeight(); y++) {
+	        for (int x = 0; x < img.getWidth(); x++) {
+	            int alpha = (img.getRGB(x, y) >> 24) & 0xFF;
+	            if (alpha < 255) {
+	                return true;
+	            }
+	        }
+	    }
+	    return false;
+	}
+}
