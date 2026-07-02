@@ -29,6 +29,7 @@ public class VentanaPrincipal extends JFrame {
     // Estado
     private BufferedImage imagenOriginal;
     private BufferedImage imagenResultado;
+    private BufferedImage imagenBlending;
     private boolean       imagenOriginalEsPng = false;
     private File          ultimoDirectorioCarga;
     private String        filtroActual = "";
@@ -67,6 +68,11 @@ public class VentanaPrincipal extends JFrame {
     private JComboBox<String>  comboDireccion;
     private JSpinner           spinnerMascara;
     private JCheckBox          chkEscalar;
+    private JComboBox<String>  comboBlendingModo;
+    private JSlider            sliderBlendingAlpha;
+    private JLabel             lblBlendingAlphaValor;
+    private JButton            btnImagenBlending;
+    private JLabel             lblImagenBlending;
 
     // Convolución Amanecer ×10
     private BufferedImage[]    imagenesAmanecer;
@@ -243,6 +249,7 @@ public class VentanaPrincipal extends JFrame {
             "Efecto Retro 2",
             "Filtro Negativo",
             "Histograma RGB",
+            "Blending / Mezcla",
             " EFECTOS HSV",
             "Filtros HSV",
             "Saturación HSV",
@@ -384,6 +391,19 @@ public class VentanaPrincipal extends JFrame {
         chkEscalar.setBackground(C_CARD);
         chkEscalar.setSelected(true);
         chkEscalar.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        comboBlendingModo = new JComboBox<>(new String[]{"Alpha", "Sumativa", "Multiplicativa"});
+        sliderBlendingAlpha = crearSliderAlpha();
+        lblBlendingAlphaValor = labelParam("Alpha: 50%");
+        lblBlendingAlphaValor.setForeground(C_ACENTO);
+        sliderBlendingAlpha.addChangeListener(e ->
+            lblBlendingAlphaValor.setText("Alpha: " + sliderBlendingAlpha.getValue() + "%")
+        );
+        btnImagenBlending = crearBoton("Elegir segunda imagen", C_ACENTO2);
+        lblImagenBlending = labelParam("Segunda imagen: no seleccionada");
+        lblImagenBlending.setForeground(C_ADVERTENCIA);
+        btnImagenBlending.addActionListener(e -> cargarImagenBlending());
+        comboBlendingModo.addActionListener(e -> actualizarEstadoControlesBlending());
 
         btnAplicar = crearBoton("Aplicar Filtro", C_ACENTO);
         btnAplicar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
@@ -640,6 +660,26 @@ public class VentanaPrincipal extends JFrame {
                 panelParams.add(labelParam("0 = transparente"));
                 panelParams.add(labelParam("255 = opaco"));
             }
+            case "Blending / Mezcla" -> {
+                panelParams.add(labelParam("Combina la imagen original"));
+                panelParams.add(labelParam("con una segunda imagen."));
+                panelParams.add(Box.createVerticalStrut(6));
+                panelParams.add(lblImagenBlending);
+                panelParams.add(Box.createVerticalStrut(4));
+                panelParams.add(filaCompleta(btnImagenBlending));
+                panelParams.add(Box.createVerticalStrut(6));
+                panelParams.add(labelParam("Modo de mezcla:"));
+                panelParams.add(Box.createVerticalStrut(4));
+                estilizarCombo(comboBlendingModo);
+                panelParams.add(filaCompleta(comboBlendingModo));
+                panelParams.add(Box.createVerticalStrut(6));
+                panelParams.add(lblBlendingAlphaValor);
+                panelParams.add(Box.createVerticalStrut(4));
+                panelParams.add(filaCompleta(sliderBlendingAlpha));
+                panelParams.add(Box.createVerticalStrut(2));
+                panelParams.add(labelParam("0% usa solo la original, 100% solo la segunda."));
+                actualizarEstadoControlesBlending();
+            }
             case "Filtros HSV", "Saturación HSV" -> {
                 panelParams.add(labelParam("Saturación (factor):"));
                 panelParams.add(Box.createVerticalStrut(4));
@@ -764,6 +804,17 @@ public class VentanaPrincipal extends JFrame {
             return;
         }
 
+        if (filtroActual.equals("Blending / Mezcla") && imagenBlending == null) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Selecciona una segunda imagen para usar Blending / Mezcla.",
+                "Falta segunda imagen",
+                JOptionPane.WARNING_MESSAGE
+            );
+            actualizarEstado("advertencia", "Blending / Mezcla requiere una segunda imagen.");
+            return;
+        }
+
         actualizarEstado("procesando", "Procesando: " + filtroActual + "...");
         btnAplicar.setEnabled(false);
 
@@ -834,6 +885,11 @@ public class VentanaPrincipal extends JFrame {
                                                   (String) comboRetro2Modo.getSelectedItem());
             case "Filtro Negativo"          -> ProcesadorImagenes.filtroNegativo(imagenOriginal);
             case "Histograma RGB"           -> ProcesadorImagenes.generarHistograma(imagenOriginal);
+            case "Blending / Mezcla"        -> ProcesadorImagenes.blending(
+                                                  imagenOriginal,
+                                                  imagenBlending,
+                                                  (String) comboBlendingModo.getSelectedItem(),
+                                                  sliderBlendingAlpha.getValue() / 100f);
             case "Filtros HSV"              -> ProcesadorImagenes.filtrosHSV(imagenOriginal,
                                                   valorFloat(spinnerSatFactor),
                                                   valorFloat(spinnerBriloFactor));
@@ -984,6 +1040,36 @@ public class VentanaPrincipal extends JFrame {
         }
     }
 
+    private void cargarImagenBlending() {
+        File dirInicial = (ultimoDirectorioCarga != null && ultimoDirectorioCarga.exists())
+            ? ultimoDirectorioCarga
+            : directorioInicialChooser();
+        JFileChooser fc = new JFileChooser(dirInicial);
+        fc.setDialogTitle("Seleccionar segunda imagen");
+        fc.addChoosableFileFilter(new FileNameExtensionFilter(
+            "Imágenes (PNG, JPG, BMP)", "png", "jpg", "jpeg", "bmp"));
+        fc.setAcceptAllFileFilterUsed(false);
+
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File seleccionado = fc.getSelectedFile();
+            File carpetaSeleccionada = seleccionado != null ? seleccionado.getParentFile() : null;
+            if (carpetaSeleccionada != null && carpetaSeleccionada.exists()) {
+                ultimoDirectorioCarga = carpetaSeleccionada;
+            }
+
+            try {
+                BufferedImage imagen = ImageIO.read(seleccionado);
+                if (imagen == null) throw new Exception("Formato no soportado.");
+                imagenBlending = imagen;
+                lblImagenBlending.setText("Segunda imagen: " + seleccionado.getName());
+                lblImagenBlending.setForeground(C_EXITO);
+                actualizarEstado("exito", "Segunda imagen cargada: " + seleccionado.getName());
+            } catch (Exception e) {
+                mostrarError("No se pudo cargar la segunda imagen: " + e.getMessage());
+            }
+        }
+    }
+
     private void guardarResultado() {
         if (imagenResultado == null) {
             mostrarError("No hay imagen para guardar.");
@@ -1061,7 +1147,7 @@ public class VentanaPrincipal extends JFrame {
     }
 
     private void limpiar() {
-        imagenOriginal = null; imagenResultado = null; imagenesAmanecer = null;
+        imagenOriginal = null; imagenResultado = null; imagenesAmanecer = null; imagenBlending = null;
         imagenOriginalEsPng = false;
         ultimoFiltroAplicado = "";
         panelOriginal.setImagen(null);
@@ -1074,11 +1160,22 @@ public class VentanaPrincipal extends JFrame {
         filtroActual = "";
         lblFiltroActivo.setText("Sin filtro aplicado");
         lblFiltroActivo.setForeground(C_TEXTO_DIM);
+        if (lblImagenBlending != null) {
+            lblImagenBlending.setText("Segunda imagen: no seleccionada");
+            lblImagenBlending.setForeground(C_ADVERTENCIA);
+        }
         mostrarPlaceholderParams();
         btnVerAmanecer.setVisible(false);
         setTitle("ImaGen Studio — UCE");  // [MEJORA 6] reset título
         listaFiltros.repaint();
         actualizarEstado("listo", "Listo. Carga una imagen o genera una nueva.");
+    }
+
+    private void actualizarEstadoControlesBlending() {
+        if (sliderBlendingAlpha == null || comboBlendingModo == null || lblBlendingAlphaValor == null) return;
+        boolean usaAlpha = "Alpha".equals(comboBlendingModo.getSelectedItem());
+        sliderBlendingAlpha.setEnabled(usaAlpha);
+        lblBlendingAlphaValor.setEnabled(usaAlpha);
     }
 
     private File directorioInicialChooser() {
@@ -1321,6 +1418,20 @@ public class VentanaPrincipal extends JFrame {
 
     private JSpinner crearSpinnerFloat(double val, double min, double max, double paso) {
         return new JSpinner(new SpinnerNumberModel(val, min, max, paso));
+    }
+
+    private JSlider crearSliderAlpha() {
+        JSlider slider = new JSlider(0, 100, 50);
+        slider.setMajorTickSpacing(50);
+        slider.setMinorTickSpacing(10);
+        slider.setPaintTicks(true);
+        slider.setPaintLabels(true);
+        slider.setSnapToTicks(false);
+        slider.setBackground(C_CARD);
+        slider.setForeground(C_TEXTO_DIM);
+        slider.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        slider.setOpaque(false);
+        return slider;
     }
 
     private float valorFloat(JSpinner s) {

@@ -399,6 +399,54 @@ public class ProcesadorImagenes {
 	}
 
 	/**
+	 * Combina dos imagenes usando distintos modos de blending.
+	 * La segunda imagen se escala al tamanio de la primera.
+	 */
+	public static BufferedImage blending(BufferedImage img1, BufferedImage img2, String modo, float alpha) {
+		validar(img1);
+		validar(img2);
+
+		int ancho = img1.getWidth();
+		int alto = img1.getHeight();
+		BufferedImage img2Escalada = escalarImagen(img2, ancho, alto);
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		float a = Math.max(0f, Math.min(1f, alpha));
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel1 = img1.getRGB(x, y);
+				int pixel2 = img2Escalada.getRGB(x, y);
+
+				int r1 = (pixel1 >> 16) & 0xFF;
+				int g1 = (pixel1 >> 8) & 0xFF;
+				int b1 = pixel1 & 0xFF;
+
+				int r2 = (pixel2 >> 16) & 0xFF;
+				int g2 = (pixel2 >> 8) & 0xFF;
+				int b2 = pixel2 & 0xFF;
+
+				int r, g, b;
+				if ("Sumativa".equalsIgnoreCase(modo)) {
+					r = clamp(r1 + r2);
+					g = clamp(g1 + g2);
+					b = clamp(b1 + b2);
+				} else if ("Multiplicativa".equalsIgnoreCase(modo)) {
+					r = (r1 * r2) / 255;
+					g = (g1 * g2) / 255;
+					b = (b1 * b2) / 255;
+				} else {
+					r = clamp((int) ((1 - a) * r1 + a * r2));
+					g = clamp((int) ((1 - a) * g1 + a * g2));
+					b = clamp((int) ((1 - a) * b1 + a * b2));
+				}
+
+				resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
+
+	/**
 	 * Modifica saturacion y brillo en espacio HSV.
 	 *
 	 * @param img              imagen de entrada
@@ -713,6 +761,14 @@ public class ProcesadorImagenes {
 		BufferedImage rgb = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
 		rgb.getGraphics().drawImage(img, 0, 0, null);
 		return rgb;
+	}
+
+	private static BufferedImage escalarImagen(BufferedImage img, int ancho, int alto) {
+		BufferedImage escalada = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		Graphics2D graphics = escalada.createGraphics();
+		graphics.drawImage(img, 0, 0, ancho, alto, null);
+		graphics.dispose();
+		return escalada;
 	}
 
 	private static void dibujarHistograma(Graphics2D graphics, int[] histograma, Color color,
