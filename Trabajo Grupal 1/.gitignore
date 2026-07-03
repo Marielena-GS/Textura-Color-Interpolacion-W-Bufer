@@ -1,0 +1,24 @@
+# Compiled class files and output directories
+*.class
+bin/
+target/
+
+# Log files
+*.log
+
+# Eclipse Project Files
+.project
+.classpath
+.settings/
+.metadata/
+
+# VS Code
+.vscode/
+
+# Maven/Java artifacts
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar

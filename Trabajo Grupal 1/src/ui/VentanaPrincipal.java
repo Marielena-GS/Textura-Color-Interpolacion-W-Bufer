@@ -9,73 +9,77 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class VentanaPrincipal extends JFrame {
 
     // Paleta de colores
-    private static final Color C_FONDO      = new Color(15,  17,  26);
-    private static final Color C_PANEL      = new Color(22,  25,  38);
-    private static final Color C_CARD       = new Color(30,  34,  52);
-    private static final Color C_BORDE      = new Color(45,  50,  80);
-    private static final Color C_ACENTO     = new Color(99,  179, 237);
-    private static final Color C_ACENTO2    = new Color(154, 117, 234);
-    private static final Color C_EXITO      = new Color(72,  187, 120);
-    private static final Color C_PELIGRO    = new Color(229, 62,  62);
-    private static final Color C_TEXTO      = new Color(226, 232, 240);
-    private static final Color C_TEXTO_DIM  = new Color(100, 110, 140);
-    private static final Color C_SELECCION  = new Color(45,  80,  130);
-    private static final Color C_ADVERTENCIA= new Color(246, 173, 85);
+    private static final Color C_FONDO = new Color(15, 17, 26);
+    private static final Color C_PANEL = new Color(22, 25, 38);
+    private static final Color C_CARD = new Color(30, 34, 52);
+    private static final Color C_BORDE = new Color(45, 50, 80);
+    private static final Color C_ACENTO = new Color(99, 179, 237);
+    private static final Color C_ACENTO2 = new Color(154, 117, 234);
+    private static final Color C_EXITO = new Color(72, 187, 120);
+    private static final Color C_PELIGRO = new Color(229, 62, 62);
+    private static final Color C_TEXTO = new Color(226, 232, 240);
+    private static final Color C_TEXTO_DIM = new Color(100, 110, 140);
+    private static final Color C_SELECCION = new Color(45, 80, 130);
+    private static final Color C_ADVERTENCIA = new Color(246, 173, 85);
 
     // Estado
     private BufferedImage imagenOriginal;
     private BufferedImage imagenResultado;
     private BufferedImage imagenBlending;
-    private boolean       imagenOriginalEsPng = false;
-    private File          ultimoDirectorioCarga;
-    private String        filtroActual = "";
-    private String        ultimoFiltroAplicado = ""; // [MEJORA 3] tracking del último filtro
+    private boolean imagenOriginalEsPng = false;
+    private File ultimoDirectorioCarga;
+    private String filtroActual = "";
+    private String ultimoFiltroAplicado = ""; // [MEJORA 3] tracking del último filtro
 
     // Componentes principales
-    private ImagePanel    panelOriginal;
-    private ImagePanel    panelResultado;
+    private ImagePanel panelOriginal;
+    private ImagePanel panelResultado;
     private JList<String> listaFiltros;
-    private JLabel        lblEstado;
-    private JLabel        lblIndicadorEstado;  // [MEJORA 4] círculo de color en barra
-    private JLabel        lblInfoOriginal;
-    private JLabel        lblInfoResultado;
-    private JButton       btnAplicar;
-    private JButton       btnGuardar;
-    private JButton       btnVerAmanecer;
-    private JPanel        panelParams;
-    private JLabel        lblFiltroActivo;     // [MEJORA 3] etiqueta filtro activo visible
+    private JLabel lblEstado;
+    private JLabel lblIndicadorEstado; // [MEJORA 4] círculo de color en barra
+    private JLabel lblInfoOriginal;
+    private JLabel lblInfoResultado;
+    private JButton btnAplicar;
+    private JButton btnGuardar;
+    private JButton btnVerAmanecer;
+    private JPanel panelParams;
+    private JLabel lblFiltroActivo; // [MEJORA 3] etiqueta filtro activo visible
 
     // Parámetros de filtros
-    private JSpinner           spinnerN;
-    private JComboBox<String>  comboRetro2Modo;
-    private JComboBox<String>  comboKernel;
-    private JSpinner           spinnerBrillo;
-    private JSpinner           spinnerAlpha;
-    private JSpinner           spinnerSatFactor;
-    private JSpinner           spinnerBriloFactor;
-    private JButton            btnColor1;
-    private JButton            btnColor2;
-    private Color              color1 = Color.RED;
-    private Color              color2 = Color.BLUE;
-    private JSpinner           spinnerAncho;
-    private JSpinner           spinnerAlto;
-    private JLabel             lblKernelActual;
-    private JLabel             lblRetro2Actual;
-    private JComboBox<String>  comboDireccion;
-    private JSpinner           spinnerMascara;
-    private JCheckBox          chkEscalar;
-    private JComboBox<String>  comboBlendingModo;
-    private JSlider            sliderBlendingAlpha;
-    private JLabel             lblBlendingAlphaValor;
-    private JButton            btnImagenBlending;
-    private JLabel             lblImagenBlending;
+    private JSpinner spinnerN;
+    private JComboBox<String> comboRetro2Modo;
+    private JComboBox<String> comboKernel;
+    private JSpinner spinnerBrillo;
+    private JSpinner spinnerAlpha;
+    private JSpinner spinnerSatFactor;
+    private JSpinner spinnerBriloFactor;
+    private JButton btnColor1;
+    private JButton btnColor2;
+    private Color color1 = Color.RED;
+    private Color color2 = Color.BLUE;
+    private JSpinner spinnerAncho;
+    private JSpinner spinnerAlto;
+    private JLabel lblKernelActual;
+    private JLabel lblRetro2Actual;
+    private JComboBox<String> comboDireccion;
+    private JSpinner spinnerMascara;
+    private JCheckBox chkEscalar;
+    private JComboBox<String> comboBlendingModo;
+    private JSlider sliderBlendingAlpha;
+    private JLabel lblBlendingAlphaValor;
+    private JButton btnImagenBlending;
+    private JLabel lblImagenBlending;
 
     // Convolución Amanecer ×10
-    private BufferedImage[]    imagenesAmanecer;
+    private BufferedImage[] imagenesAmanecer;
 
     // Para arrastrar la ventana sin barra de título nativa
     private Point puntoArrastre;
@@ -93,8 +97,8 @@ public class VentanaPrincipal extends JFrame {
 
     private void construirUI() {
         setLayout(new BorderLayout(0, 0));
-        add(crearBarraTitulo(), BorderLayout.NORTH);  // barra de título personalizada
-        add(crearCuerpo(),      BorderLayout.CENTER);
+        add(crearBarraTitulo(), BorderLayout.NORTH); // barra de título personalizada
+        add(crearCuerpo(), BorderLayout.CENTER);
         add(crearBarraEstado(), BorderLayout.SOUTH);
         actualizarEstado("listo", "Listo. Carga una imagen o genera una nueva.");
     }
@@ -119,14 +123,16 @@ public class VentanaPrincipal extends JFrame {
         controles.setBackground(C_ACENTO.darker().darker());
         controles.setOpaque(true);
 
-        JButton btnMin   = crearBotonVentanaIcono("min");
-        JButton btnMax   = crearBotonVentanaIcono("max");
+        JButton btnMin = crearBotonVentanaIcono("min");
+        JButton btnMax = crearBotonVentanaIcono("max");
         JButton btnClose = crearBotonVentanaIcono("close");
 
         btnMin.addActionListener(e -> setState(ICONIFIED));
         btnMax.addActionListener(e -> {
-            if (getExtendedState() == MAXIMIZED_BOTH) setExtendedState(NORMAL);
-            else setExtendedState(MAXIMIZED_BOTH);
+            if (getExtendedState() == MAXIMIZED_BOTH)
+                setExtendedState(NORMAL);
+            else
+                setExtendedState(MAXIMIZED_BOTH);
         });
         btnClose.addActionListener(e -> System.exit(0));
 
@@ -139,15 +145,17 @@ public class VentanaPrincipal extends JFrame {
 
         // Arrastrar ventana desde esta barra
         filaTitulo.addMouseListener(new MouseAdapter() {
-            @Override public void mousePressed(MouseEvent e) {
+            @Override
+            public void mousePressed(MouseEvent e) {
                 puntoArrastre = e.getPoint();
             }
         });
         filaTitulo.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override public void mouseDragged(MouseEvent e) {
+            @Override
+            public void mouseDragged(MouseEvent e) {
                 Point loc = getLocation();
                 setLocation(loc.x + e.getX() - puntoArrastre.x,
-                            loc.y + e.getY() - puntoArrastre.y);
+                        loc.y + e.getY() - puntoArrastre.y);
             }
         });
 
@@ -155,7 +163,7 @@ public class VentanaPrincipal extends JFrame {
         JPanel header = crearHeader();
 
         barra.add(filaTitulo, BorderLayout.NORTH);
-        barra.add(header,     BorderLayout.CENTER);
+        barra.add(header, BorderLayout.CENTER);
         return barra;
     }
 
@@ -167,9 +175,8 @@ public class VentanaPrincipal extends JFrame {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(C_PANEL);
         header.setBorder(BorderFactory.createCompoundBorder(
-            new MatteBorder(0, 0, 1, 0, C_BORDE),
-            new EmptyBorder(10, 18, 10, 18)
-        ));
+                new MatteBorder(0, 0, 1, 0, C_BORDE),
+                new EmptyBorder(10, 18, 10, 18)));
 
         JLabel lblTitulo = new JLabel("● ImaGen Studio");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -188,12 +195,12 @@ public class VentanaPrincipal extends JFrame {
         derecha.setOpaque(false);
 
         // [MEJORA 5] Botones con iconos Unicode reales en vez de espacios vacíos
-        JButton btnCargar  = crearBoton("Cargar Imagen",    C_ACENTO);
-        btnGuardar          = crearBoton("Guardar Resultado", C_EXITO);
-        JButton btnLimpiar = crearBoton("Limpiar",           C_PELIGRO);
+        JButton btnCargar = crearBoton("Cargar Imagen", C_ACENTO);
+        btnGuardar = crearBoton("Guardar Resultado", C_EXITO);
+        JButton btnLimpiar = crearBoton("Limpiar", C_PELIGRO);
 
         btnGuardar.setEnabled(false);
-        btnCargar.addActionListener(e  -> cargarImagen());
+        btnCargar.addActionListener(e -> cargarImagen());
         btnGuardar.addActionListener(e -> guardarResultado());
         btnLimpiar.addActionListener(e -> limpiar());
 
@@ -201,7 +208,7 @@ public class VentanaPrincipal extends JFrame {
         derecha.add(btnGuardar);
         derecha.add(btnLimpiar);
 
-        header.add(izq,     BorderLayout.WEST);
+        header.add(izq, BorderLayout.WEST);
         header.add(derecha, BorderLayout.EAST);
         return header;
     }
@@ -214,7 +221,7 @@ public class VentanaPrincipal extends JFrame {
         JPanel cuerpo = new JPanel(new BorderLayout(0, 0));
         cuerpo.setBackground(C_FONDO);
         cuerpo.add(crearPanelIzquierdo(), BorderLayout.WEST);
-        cuerpo.add(crearPanelCentral(),   BorderLayout.CENTER);
+        cuerpo.add(crearPanelCentral(), BorderLayout.CENTER);
         return cuerpo;
     }
 
@@ -224,47 +231,79 @@ public class VentanaPrincipal extends JFrame {
         panel.setPreferredSize(new Dimension(210, 0));
         panel.setBackground(C_PANEL);
         panel.setBorder(BorderFactory.createCompoundBorder(
-            new MatteBorder(0, 0, 0, 1, C_BORDE),
-            new EmptyBorder(10, 8, 10, 8)
-        ));
-        panel.add(crearListaFiltros(),           BorderLayout.CENTER);
+                new MatteBorder(0, 0, 0, 1, C_BORDE),
+                new EmptyBorder(10, 8, 10, 8)));
+        panel.add(crearPanelExposiciones(), BorderLayout.NORTH);
+        panel.add(crearListaFiltros(), BorderLayout.CENTER);
         panel.add(crearPanelInferiorIzquierdo(), BorderLayout.SOUTH);
         return panel;
     }
 
+    private JPanel crearPanelExposiciones() {
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(C_CARD);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(C_BORDE),
+                new EmptyBorder(8, 8, 8, 8)));
+
+        JLabel titulo = new JLabel("Exposiciones");
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        titulo.setForeground(C_ACENTO2);
+        titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel descripcion = new JLabel("Grupo 1 - Rasterización, Z-Buffer y Cubos 3D");
+        descripcion.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        descripcion.setForeground(C_TEXTO_DIM);
+        descripcion.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JButton btnGrupo1 = crearBoton("Grupo 1", C_ACENTO2);
+        btnGrupo1.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnGrupo1.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        btnGrupo1.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnGrupo1.addActionListener(e -> abrirGrupo1());
+
+        card.add(titulo);
+        card.add(Box.createVerticalStrut(4));
+        card.add(descripcion);
+        card.add(Box.createVerticalStrut(8));
+        card.add(btnGrupo1);
+        return card;
+    }
+
     private JScrollPane crearListaFiltros() {
         String[] filtros = {
-            " GENERACIÓN DE IMÁGENES",
-            "Imagen Aleatoria",
-            "Copiar Imagen",
-            " CONVOLUCIÓN",
-            "Convolución Manual",
-            "Convolución Op",
-            "Convolución Amanecer ×10",
-            " COLOR",
-            "Blanco y Negro",
-            "Escala de Grises",
-            "Escala de Grises HSV",
-            "Efecto Retro 1",
-            "Efecto Retro 2",
-            "Filtro Negativo",
-            "Histograma RGB",
-            "Blending / Mezcla",
-            " EFECTOS HSV",
-            "Filtros HSV",
-            "Saturación HSV",
-            "Brillo por Canal",
-            "Canal Alpha",
-            " DEGRADADOS",
-            "Degradado Horizontal",
-            "Degradado Vertical",
-            "Degradado Radial",
-            "Gradiente Radial",
-            " ESPECIALES",
-            "Desvanecimiento Circular",
-            "Vidrio Esmerilado",
-            " MÁSCARA / RECORTE",
-            "Recorte de Bits"
+                " GENERACIÓN DE IMÁGENES",
+                "Imagen Aleatoria",
+                "Copiar Imagen",
+                " CONVOLUCIÓN",
+                "Convolución Manual",
+                "Convolución Op",
+                "Convolución Amanecer ×10",
+                " COLOR",
+                "Blanco y Negro",
+                "Escala de Grises",
+                "Escala de Grises HSV",
+                "Efecto Retro 1",
+                "Efecto Retro 2",
+                "Filtro Negativo",
+                "Histograma RGB",
+                "Blending / Mezcla",
+                " EFECTOS HSV",
+                "Filtros HSV",
+                "Saturación HSV",
+                "Brillo por Canal",
+                "Canal Alpha",
+                " DEGRADADOS",
+                "Degradado Horizontal",
+                "Degradado Vertical",
+                "Degradado Radial",
+                "Gradiente Radial",
+                " ESPECIALES",
+                "Desvanecimiento Circular",
+                "Vidrio Esmerilado",
+                " MÁSCARA / RECORTE",
+                "Recorte de Bits"
         };
 
         listaFiltros = new JList<>(filtros);
@@ -290,9 +329,8 @@ public class VentanaPrincipal extends JFrame {
                     lbl.setForeground(new Color(107, 125, 179));
                     lbl.setBackground(new Color(10, 12, 20));
                     lbl.setBorder(BorderFactory.createCompoundBorder(
-                        new MatteBorder(1, 0, 1, 0, new Color(30, 34, 53)),
-                        new EmptyBorder(6, 10, 4, 0)
-                    ));
+                            new MatteBorder(1, 0, 1, 0, new Color(30, 34, 53)),
+                            new EmptyBorder(6, 10, 4, 0)));
                     lbl.setEnabled(false);
                 } else {
                     // [MEJORA 3] Resaltar el último filtro aplicado en la lista
@@ -313,7 +351,10 @@ public class VentanaPrincipal extends JFrame {
                 String sel = listaFiltros.getSelectedValue();
                 if (sel != null) {
                     boolean esCabecera = sel.equals(sel.toUpperCase()) && sel.length() > 3;
-                    if (esCabecera) { listaFiltros.clearSelection(); return; }
+                    if (esCabecera) {
+                        listaFiltros.clearSelection();
+                        return;
+                    }
                     filtroActual = sel;
                     actualizarPanelParams(sel);
                 }
@@ -340,48 +381,44 @@ public class VentanaPrincipal extends JFrame {
         panelParams = new JPanel();
         panelParams.setBackground(C_CARD);
         panelParams.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(C_BORDE),
-            new EmptyBorder(8, 8, 8, 8)
-        ));
+                BorderFactory.createLineBorder(C_BORDE),
+                new EmptyBorder(8, 8, 8, 8)));
         panelParams.setLayout(new BoxLayout(panelParams, BoxLayout.Y_AXIS));
 
         // [MEJORA 1] Placeholder visual con instrucciones de uso
         mostrarPlaceholderParams();
 
-        spinnerN           = crearSpinner(255, 2, 255, 1);
-        comboRetro2Modo    = new JComboBox<>(new String[]{"RG", "RB", "GB"});
-        comboKernel        = new JComboBox<>(new String[]{
-            "Normal", "Enfoque", "Desenfoque 3x3", "Desenfoque 9x9",
-            "Bordes 4v", "Bordes 8v", "Aclaracion", "Oscurecer"
+        spinnerN = crearSpinner(255, 2, 255, 1);
+        comboRetro2Modo = new JComboBox<>(new String[] { "RG", "RB", "GB" });
+        comboKernel = new JComboBox<>(new String[] {
+                "Normal", "Enfoque", "Desenfoque 3x3", "Desenfoque 9x9",
+                "Bordes 4v", "Bordes 8v", "Aclaracion", "Oscurecer"
         });
-        spinnerBrillo      = crearSpinner(25, -255, 255, 5);
-        spinnerAlpha       = crearSpinner(150, 0, 255, 10);
-        spinnerSatFactor   = crearSpinnerFloat(1.5, 0.1, 5.0, 0.1);
+        spinnerBrillo = crearSpinner(25, -255, 255, 5);
+        spinnerAlpha = crearSpinner(150, 0, 255, 10);
+        spinnerSatFactor = crearSpinnerFloat(1.5, 0.1, 5.0, 0.1);
         spinnerBriloFactor = crearSpinnerFloat(1.5, 0.1, 5.0, 0.1);
-        btnColor1          = crearBotonColor("Color inicio", color1);
-        btnColor2          = crearBotonColor("Color fin",    color2);
-        spinnerAncho       = crearSpinner(400, 50, 2000, 50);
-        spinnerAlto        = crearSpinner(300, 50, 2000, 50);
+        btnColor1 = crearBotonColor("Color inicio", color1);
+        btnColor2 = crearBotonColor("Color fin", color2);
+        spinnerAncho = crearSpinner(400, 50, 2000, 50);
+        spinnerAlto = crearSpinner(300, 50, 2000, 50);
 
         lblKernelActual = new JLabel("● " + comboKernel.getSelectedItem());
         lblKernelActual.setFont(new Font("Segoe UI", Font.BOLD, 11));
         lblKernelActual.setForeground(C_ACENTO);
         lblKernelActual.setAlignmentX(Component.LEFT_ALIGNMENT);
-        comboKernel.addActionListener(ev ->
-            lblKernelActual.setText("● " + comboKernel.getSelectedItem())
-        );
+        comboKernel.addActionListener(ev -> lblKernelActual.setText("● " + comboKernel.getSelectedItem()));
 
         lblRetro2Actual = new JLabel("●  Modo: " + comboRetro2Modo.getSelectedItem());
         lblRetro2Actual.setFont(new Font("Segoe UI", Font.BOLD, 11));
         lblRetro2Actual.setForeground(C_ACENTO2);
         lblRetro2Actual.setAlignmentX(Component.LEFT_ALIGNMENT);
-        comboRetro2Modo.addActionListener(ev ->
-            lblRetro2Actual.setText("●  Modo: " + comboRetro2Modo.getSelectedItem())
-        );
+        comboRetro2Modo
+                .addActionListener(ev -> lblRetro2Actual.setText("●  Modo: " + comboRetro2Modo.getSelectedItem()));
 
-        comboDireccion = new JComboBox<>(new String[]{
-            "→  Izquierda → Derecha",
-            "←  Derecha → Izquierda",
+        comboDireccion = new JComboBox<>(new String[] {
+                "→  Izquierda → Derecha",
+                "←  Derecha → Izquierda",
         });
 
         spinnerMascara = crearSpinner(15, 1, 255, 1);
@@ -392,13 +429,12 @@ public class VentanaPrincipal extends JFrame {
         chkEscalar.setSelected(true);
         chkEscalar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        comboBlendingModo = new JComboBox<>(new String[]{"Alpha", "Sumativa", "Multiplicativa"});
+        comboBlendingModo = new JComboBox<>(new String[] { "Alpha", "Sumativa", "Multiplicativa" });
         sliderBlendingAlpha = crearSliderAlpha();
         lblBlendingAlphaValor = labelParam("Alpha: 50%");
         lblBlendingAlphaValor.setForeground(C_ACENTO);
-        sliderBlendingAlpha.addChangeListener(e ->
-            lblBlendingAlphaValor.setText("Alpha: " + sliderBlendingAlpha.getValue() + "%")
-        );
+        sliderBlendingAlpha.addChangeListener(
+                e -> lblBlendingAlphaValor.setText("Alpha: " + sliderBlendingAlpha.getValue() + "%"));
         btnImagenBlending = crearBoton("Elegir segunda imagen", C_ACENTO2);
         lblImagenBlending = labelParam("Segunda imagen: no seleccionada");
         lblImagenBlending.setForeground(C_ADVERTENCIA);
@@ -419,18 +455,20 @@ public class VentanaPrincipal extends JFrame {
         top.setOpaque(false);
         top.add(lblFiltroActivo, BorderLayout.CENTER);
 
-        contenedor.add(top,        BorderLayout.NORTH);
+        contenedor.add(top, BorderLayout.NORTH);
         contenedor.add(panelParams, BorderLayout.CENTER);
-        contenedor.add(btnAplicar,  BorderLayout.SOUTH);
+        contenedor.add(btnAplicar, BorderLayout.SOUTH);
 
         JPanel wrapper = new JPanel(new BorderLayout(0, 4));
         wrapper.setOpaque(false);
-        wrapper.add(contenedor,     BorderLayout.CENTER);
+        wrapper.add(contenedor, BorderLayout.CENTER);
         wrapper.add(btnVerAmanecer, BorderLayout.SOUTH);
         return wrapper;
     }
 
-    /** [MEJORA 1] Placeholder visual con instrucciones en el panel de parámetros. */
+    /**
+     * [MEJORA 1] Placeholder visual con instrucciones en el panel de parámetros.
+     */
     private void mostrarPlaceholderParams() {
         panelParams.removeAll();
 
@@ -474,7 +512,9 @@ public class VentanaPrincipal extends JFrame {
         centro.add(Box.createVerticalGlue());
         centro.add(ico);
         centro.add(Box.createVerticalStrut(6));
-        centro.add(l1); centro.add(l2); centro.add(l3);
+        centro.add(l1);
+        centro.add(l2);
+        centro.add(l3);
         centro.add(Box.createVerticalStrut(8));
         centro.add(sep);
         centro.add(Box.createVerticalStrut(6));
@@ -498,7 +538,7 @@ public class VentanaPrincipal extends JFrame {
         JPanel central = new JPanel(new GridLayout(1, 2, 8, 0));
         central.setBackground(C_FONDO);
         central.setBorder(new EmptyBorder(10, 10, 10, 10));
-        central.add(crearTarjetaImagen("Imagen Original",  true));
+        central.add(crearTarjetaImagen("Imagen Original", true));
         central.add(crearTarjetaImagen("Imagen Resultado", false));
         return central;
     }
@@ -507,9 +547,8 @@ public class VentanaPrincipal extends JFrame {
         JPanel tarjeta = new JPanel(new BorderLayout(0, 6));
         tarjeta.setBackground(C_CARD);
         tarjeta.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(C_BORDE),
-            new EmptyBorder(8, 8, 8, 8)
-        ));
+                BorderFactory.createLineBorder(C_BORDE),
+                new EmptyBorder(8, 8, 8, 8)));
 
         JLabel lblTitulo = new JLabel(titulo);
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -523,18 +562,22 @@ public class VentanaPrincipal extends JFrame {
         JPanel headerCard = new JPanel(new BorderLayout());
         headerCard.setOpaque(false);
         headerCard.add(lblTitulo, BorderLayout.WEST);
-        headerCard.add(lblInfo,   BorderLayout.EAST);
+        headerCard.add(lblInfo, BorderLayout.EAST);
 
         ImagePanel imgPanel = new ImagePanel(
-            esOriginal ? "Carga una imagen con el botón de arriba"
-                       : "Aplica un filtro para ver el resultado"
-        );
+                esOriginal ? "Carga una imagen con el botón de arriba"
+                        : "Aplica un filtro para ver el resultado");
 
-        if (esOriginal) { panelOriginal = imgPanel;  lblInfoOriginal  = lblInfo; }
-        else            { panelResultado = imgPanel; lblInfoResultado = lblInfo; }
+        if (esOriginal) {
+            panelOriginal = imgPanel;
+            lblInfoOriginal = lblInfo;
+        } else {
+            panelResultado = imgPanel;
+            lblInfoResultado = lblInfo;
+        }
 
         tarjeta.add(headerCard, BorderLayout.NORTH);
-        tarjeta.add(imgPanel,   BorderLayout.CENTER);
+        tarjeta.add(imgPanel, BorderLayout.CENTER);
         return tarjeta;
     }
 
@@ -556,7 +599,7 @@ public class VentanaPrincipal extends JFrame {
 
         lblEstado = new JLabel("Listo");
         lblEstado.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        lblEstado.setForeground(C_TEXTO);   // [MEJORA 4] texto más brillante, no dim
+        lblEstado.setForeground(C_TEXTO); // [MEJORA 4] texto más brillante, no dim
 
         izq.add(lblIndicadorEstado);
         izq.add(lblEstado);
@@ -582,10 +625,22 @@ public class VentanaPrincipal extends JFrame {
         SwingUtilities.invokeLater(() -> {
             lblEstado.setText(msg);
             switch (tipo) {
-                case "exito"      -> { lblIndicadorEstado.setForeground(C_EXITO);      lblEstado.setForeground(C_TEXTO); }
-                case "error"      -> { lblIndicadorEstado.setForeground(C_PELIGRO);    lblEstado.setForeground(C_PELIGRO); }
-                case "procesando" -> { lblIndicadorEstado.setForeground(C_ADVERTENCIA);lblEstado.setForeground(C_TEXTO); }
-                default           -> { lblIndicadorEstado.setForeground(C_EXITO);      lblEstado.setForeground(C_TEXTO_DIM); }
+                case "exito" -> {
+                    lblIndicadorEstado.setForeground(C_EXITO);
+                    lblEstado.setForeground(C_TEXTO);
+                }
+                case "error" -> {
+                    lblIndicadorEstado.setForeground(C_PELIGRO);
+                    lblEstado.setForeground(C_PELIGRO);
+                }
+                case "procesando" -> {
+                    lblIndicadorEstado.setForeground(C_ADVERTENCIA);
+                    lblEstado.setForeground(C_TEXTO);
+                }
+                default -> {
+                    lblIndicadorEstado.setForeground(C_EXITO);
+                    lblEstado.setForeground(C_TEXTO_DIM);
+                }
             }
         });
     }
@@ -690,9 +745,9 @@ public class VentanaPrincipal extends JFrame {
                 panelParams.add(filaCompleta(spinnerBriloFactor));
             }
             case "Degradado Horizontal" -> {
-                comboDireccion.setModel(new DefaultComboBoxModel<>(new String[]{
-                    "← Izquierda a → Derecha",
-                    "→ Derecha a ← Izquierda"
+                comboDireccion.setModel(new DefaultComboBoxModel<>(new String[] {
+                        "← Izquierda a → Derecha",
+                        "→ Derecha a ← Izquierda"
                 }));
                 comboDireccion.setSelectedIndex(0);
                 estilizarCombo(comboDireccion);
@@ -713,9 +768,9 @@ public class VentanaPrincipal extends JFrame {
                 panelParams.add(filaVertical("Alto:", spinnerAlto));
             }
             case "Degradado Vertical" -> {
-                comboDireccion.setModel(new DefaultComboBoxModel<>(new String[]{
-                    "↑  Arriba hacia ↓ Abajo",
-                    "↓  Abajo hacia ↑ Arriba"
+                comboDireccion.setModel(new DefaultComboBoxModel<>(new String[] {
+                        "↑  Arriba hacia ↓ Abajo",
+                        "↓  Abajo hacia ↑ Arriba"
                 }));
                 comboDireccion.setSelectedIndex(0);
                 estilizarCombo(comboDireccion);
@@ -784,9 +839,9 @@ public class VentanaPrincipal extends JFrame {
         }
 
         boolean generacion = filtroActual.equals("Imagen Aleatoria")
-                          || filtroActual.equals("Degradado Horizontal")
-                          || filtroActual.equals("Degradado Vertical")
-                          || filtroActual.equals("Degradado Radial");
+                || filtroActual.equals("Degradado Horizontal")
+                || filtroActual.equals("Degradado Vertical")
+                || filtroActual.equals("Degradado Radial");
 
         if (!generacion && imagenOriginal == null) {
             mostrarError("Carga una imagen primero con el botón [+].");
@@ -795,22 +850,20 @@ public class VentanaPrincipal extends JFrame {
 
         if (filtroActual.equals("Canal Alpha") && !imagenOriginalEsPng) {
             JOptionPane.showMessageDialog(
-                this,
-                "El filtro 'Canal Alpha' solo admite imágenes PNG.",
-                "Formato no permitido",
-                JOptionPane.WARNING_MESSAGE
-            );
+                    this,
+                    "El filtro 'Canal Alpha' solo admite imágenes PNG.",
+                    "Formato no permitido",
+                    JOptionPane.WARNING_MESSAGE);
             actualizarEstado("advertencia", "Canal Alpha requiere PNG.");
             return;
         }
 
         if (filtroActual.equals("Blending / Mezcla") && imagenBlending == null) {
             JOptionPane.showMessageDialog(
-                this,
-                "Selecciona una segunda imagen para usar Blending / Mezcla.",
-                "Falta segunda imagen",
-                JOptionPane.WARNING_MESSAGE
-            );
+                    this,
+                    "Selecciona una segunda imagen para usar Blending / Mezcla.",
+                    "Falta segunda imagen",
+                    JOptionPane.WARNING_MESSAGE);
             actualizarEstado("advertencia", "Blending / Mezcla requiere una segunda imagen.");
             return;
         }
@@ -820,21 +873,23 @@ public class VentanaPrincipal extends JFrame {
 
         SwingWorker<BufferedImage, Void> worker = new SwingWorker<>() {
             @Override
-            protected BufferedImage doInBackground() { return ejecutarFiltro(); }
+            protected BufferedImage doInBackground() {
+                return ejecutarFiltro();
+            }
 
             @Override
             protected void done() {
                 try {
                     BufferedImage resultado = get();
                     if (resultado != null) {
-                        imagenResultado    = resultado;
+                        imagenResultado = resultado;
                         ultimoFiltroAplicado = filtroActual; // [MEJORA 3]
 
                         panelResultado.setImagen(resultado);
                         panelResultado.setFiltroActivo(filtroActual); // [MEJORA 3]
 
                         lblInfoResultado.setText(
-                            resultado.getWidth() + " × " + resultado.getHeight() + " px");
+                                resultado.getWidth() + " × " + resultado.getHeight() + " px");
                         btnGuardar.setEnabled(true);
 
                         // [MEJORA 3] Etiqueta visible del filtro aplicado
@@ -863,82 +918,82 @@ public class VentanaPrincipal extends JFrame {
 
     private BufferedImage ejecutarFiltro() {
         int ancho = (int) spinnerAncho.getValue();
-        int alto  = (int) spinnerAlto.getValue();
-        int N     = (int) spinnerN.getValue();
+        int alto = (int) spinnerAlto.getValue();
+        int N = (int) spinnerN.getValue();
 
         return switch (filtroActual) {
-            case "Imagen Aleatoria"         -> ProcesadorImagenes.imagenAleatoria(ancho, alto);
-            case "Copiar Imagen"            -> ProcesadorImagenes.copiarImagen(imagenOriginal);
-            case "Convolución Manual"       -> ProcesadorImagenes.convolucionManual(imagenOriginal, kernelSeleccionado2D());
-            case "Convolución Op"           -> ProcesadorImagenes.convolucionOp(imagenOriginal, kernelSeleccionado1D());
+            case "Imagen Aleatoria" -> ProcesadorImagenes.imagenAleatoria(ancho, alto);
+            case "Copiar Imagen" -> ProcesadorImagenes.copiarImagen(imagenOriginal);
+            case "Convolución Manual" -> ProcesadorImagenes.convolucionManual(imagenOriginal, kernelSeleccionado2D());
+            case "Convolución Op" -> ProcesadorImagenes.convolucionOp(imagenOriginal, kernelSeleccionado1D());
             case "Convolución Amanecer ×10" -> {
                 imagenesAmanecer = ProcesadorImagenes.convolucionAmanecer(imagenOriginal);
                 SwingUtilities.invokeLater(() -> btnVerAmanecer.setVisible(true));
                 yield imagenesAmanecer[9];
             }
-            case "Blanco y Negro"           -> ProcesadorImagenes.blancoNegro(imagenOriginal);
-            case "Escala de Grises"         -> ProcesadorImagenes.escalaGrises(imagenOriginal, N);
-            case "Escala de Grises HSV"     -> ProcesadorImagenes.escalaGrisesHSV(imagenOriginal);
-            case "Efecto Retro 1"           -> ProcesadorImagenes.efectorRetro1(imagenOriginal, N);
-            case "Efecto Retro 2"           -> ProcesadorImagenes.efectorRetro2(
-                                                  imagenOriginal, N,
-                                                  (String) comboRetro2Modo.getSelectedItem());
-            case "Filtro Negativo"          -> ProcesadorImagenes.filtroNegativo(imagenOriginal);
-            case "Histograma RGB"           -> ProcesadorImagenes.generarHistograma(imagenOriginal);
-            case "Blending / Mezcla"        -> ProcesadorImagenes.blending(
-                                                  imagenOriginal,
-                                                  imagenBlending,
-                                                  (String) comboBlendingModo.getSelectedItem(),
-                                                  sliderBlendingAlpha.getValue() / 100f);
-            case "Filtros HSV"              -> ProcesadorImagenes.filtrosHSV(imagenOriginal,
-                                                  valorFloat(spinnerSatFactor),
-                                                  valorFloat(spinnerBriloFactor));
-            case "Saturación HSV"           -> ProcesadorImagenes.saturacionHSV(imagenOriginal,
-                                                  valorFloat(spinnerSatFactor),
-                                                  valorFloat(spinnerBriloFactor));
-            case "Brillo por Canal"         -> ProcesadorImagenes.brilloPorCanal(imagenOriginal,
-                                                  (int) spinnerBrillo.getValue());
-            case "Canal Alpha"              -> ProcesadorImagenes.canalAlpha(imagenOriginal,
-                                                  (int) spinnerAlpha.getValue() / 255f * 1.5f);
-            case "Degradado Horizontal"     -> {
+            case "Blanco y Negro" -> ProcesadorImagenes.blancoNegro(imagenOriginal);
+            case "Escala de Grises" -> ProcesadorImagenes.escalaGrises(imagenOriginal, N);
+            case "Escala de Grises HSV" -> ProcesadorImagenes.escalaGrisesHSV(imagenOriginal);
+            case "Efecto Retro 1" -> ProcesadorImagenes.efectorRetro1(imagenOriginal, N);
+            case "Efecto Retro 2" -> ProcesadorImagenes.efectorRetro2(
+                    imagenOriginal, N,
+                    (String) comboRetro2Modo.getSelectedItem());
+            case "Filtro Negativo" -> ProcesadorImagenes.filtroNegativo(imagenOriginal);
+            case "Histograma RGB" -> ProcesadorImagenes.generarHistograma(imagenOriginal);
+            case "Blending / Mezcla" -> ProcesadorImagenes.blending(
+                    imagenOriginal,
+                    imagenBlending,
+                    (String) comboBlendingModo.getSelectedItem(),
+                    sliderBlendingAlpha.getValue() / 100f);
+            case "Filtros HSV" -> ProcesadorImagenes.filtrosHSV(imagenOriginal,
+                    valorFloat(spinnerSatFactor),
+                    valorFloat(spinnerBriloFactor));
+            case "Saturación HSV" -> ProcesadorImagenes.saturacionHSV(imagenOriginal,
+                    valorFloat(spinnerSatFactor),
+                    valorFloat(spinnerBriloFactor));
+            case "Brillo por Canal" -> ProcesadorImagenes.brilloPorCanal(imagenOriginal,
+                    (int) spinnerBrillo.getValue());
+            case "Canal Alpha" -> ProcesadorImagenes.canalAlpha(imagenOriginal,
+                    (int) spinnerAlpha.getValue() / 255f * 1.5f);
+            case "Degradado Horizontal" -> {
                 String dir = (String) comboDireccion.getSelectedItem();
                 boolean inv = dir != null && dir.startsWith("←");
                 yield ProcesadorImagenes.degradadoHorizontal(ancho, alto,
-                    inv ? color2 : color1, inv ? color1 : color2);
+                        inv ? color2 : color1, inv ? color1 : color2);
             }
-            case "Degradado Vertical"       -> {
+            case "Degradado Vertical" -> {
                 String dir = (String) comboDireccion.getSelectedItem();
                 boolean inv = dir != null && dir.startsWith("↑");
                 yield ProcesadorImagenes.degradadoVertical(ancho, alto,
-                    inv ? color2 : color1, inv ? color1 : color2);
+                        inv ? color2 : color1, inv ? color1 : color2);
             }
-            case "Degradado Radial"         -> ProcesadorImagenes.degradadoRadial(ancho, alto, color1, color2);
-            case "Gradiente Radial"         -> ProcesadorImagenes.gradienteRadial(imagenOriginal);
+            case "Degradado Radial" -> ProcesadorImagenes.degradadoRadial(ancho, alto, color1, color2);
+            case "Gradiente Radial" -> ProcesadorImagenes.gradienteRadial(imagenOriginal);
             case "Desvanecimiento Circular" -> ProcesadorImagenes.desvanecimientoCircular(imagenOriginal);
-            case "Vidrio Esmerilado"        -> ProcesadorImagenes.vidrioEsmerilado(imagenOriginal);
-            case "Recorte de Bits"          -> ProcesadorImagenes.recorteBits(
-                                                  imagenOriginal,
-                                                  ((Integer) spinnerMascara.getValue()),
-                                                  chkEscalar.isSelected());
+            case "Vidrio Esmerilado" -> ProcesadorImagenes.vidrioEsmerilado(imagenOriginal);
+            case "Recorte de Bits" -> ProcesadorImagenes.recorteBits(
+                    imagenOriginal,
+                    ((Integer) spinnerMascara.getValue()),
+                    chkEscalar.isSelected());
             default -> null;
         };
     }
 
     private float[][] kernelSeleccionado2D() {
         float[] k = kernelSeleccionado1D();
-        return new float[][]{{k[0],k[1],k[2]},{k[3],k[4],k[5]},{k[6],k[7],k[8]}};
+        return new float[][] { { k[0], k[1], k[2] }, { k[3], k[4], k[5] }, { k[6], k[7], k[8] } };
     }
 
     private float[] kernelSeleccionado1D() {
         return switch ((String) comboKernel.getSelectedItem()) {
-            case "Enfoque"        -> Kernels.kEnfoque;
+            case "Enfoque" -> Kernels.kEnfoque;
             case "Desenfoque 3x3" -> Kernels.kDesenfoque;
             case "Desenfoque 9x9" -> Kernels.kDesenfoque9;
-            case "Bordes 4v"      -> Kernels.kBordes;
-            case "Bordes 8v"      -> Kernels.kBordes8;
-            case "Aclaracion"     -> Kernels.kAclaracion;
-            case "Oscurecer"      -> Kernels.kOscurecer;
-            default               -> Kernels.kNormal;
+            case "Bordes 4v" -> Kernels.kBordes;
+            case "Bordes 8v" -> Kernels.kBordes8;
+            case "Aclaracion" -> Kernels.kAclaracion;
+            case "Oscurecer" -> Kernels.kOscurecer;
+            default -> Kernels.kNormal;
         };
     }
 
@@ -965,20 +1020,25 @@ public class VentanaPrincipal extends JFrame {
             ImagePanel mini = new ImagePanel("...");
             mini.setImagen(imagenesAmanecer[i]);
             mini.setPreferredSize(new Dimension(160, 120));
-            mini.setToolTipText("Imagen " + (i+1) + " — " + (int)((i/9f)*100) + "%");
+            mini.setToolTipText("Imagen " + (i + 1) + " — " + (int) ((i / 9f) * 100) + "%");
 
             mini.addMouseListener(new MouseAdapter() {
-                @Override public void mouseClicked(MouseEvent e) {
+                @Override
+                public void mouseClicked(MouseEvent e) {
                     imagenResultado = imagenesAmanecer[idx];
                     panelResultado.setImagen(imagenResultado);
-                    lblInfoResultado.setText("Amanecer imagen " + (idx+1));
+                    lblInfoResultado.setText("Amanecer imagen " + (idx + 1));
                     btnGuardar.setEnabled(true);
                     dialogo.dispose();
                 }
-                @Override public void mouseEntered(MouseEvent e) {
+
+                @Override
+                public void mouseEntered(MouseEvent e) {
                     mini.setBorder(BorderFactory.createLineBorder(C_ACENTO, 2));
                 }
-                @Override public void mouseExited(MouseEvent e) {
+
+                @Override
+                public void mouseExited(MouseEvent e) {
                     mini.setBorder(BorderFactory.createLineBorder(C_BORDE, 1));
                 }
             });
@@ -986,8 +1046,8 @@ public class VentanaPrincipal extends JFrame {
             JPanel celda = new JPanel(new BorderLayout());
             celda.setBackground(C_CARD);
             celda.add(mini, BorderLayout.CENTER);
-            JLabel lbl = new JLabel("Img " + (i+1) + " — " + (int)((i/9f)*100) + "%",
-                                    SwingConstants.CENTER);
+            JLabel lbl = new JLabel("Img " + (i + 1) + " — " + (int) ((i / 9f) * 100) + "%",
+                    SwingConstants.CENTER);
             lbl.setForeground(C_TEXTO_DIM);
             lbl.setFont(new Font("Segoe UI", Font.PLAIN, 10));
             celda.add(lbl, BorderLayout.SOUTH);
@@ -1004,12 +1064,12 @@ public class VentanaPrincipal extends JFrame {
 
     private void cargarImagen() {
         File dirInicial = (ultimoDirectorioCarga != null && ultimoDirectorioCarga.exists())
-            ? ultimoDirectorioCarga
-            : directorioInicialChooser();
+                ? ultimoDirectorioCarga
+                : directorioInicialChooser();
         JFileChooser fc = new JFileChooser(dirInicial);
         fc.setDialogTitle("Seleccionar imagen");
         fc.addChoosableFileFilter(new FileNameExtensionFilter(
-            "Imágenes (PNG, JPG, BMP)", "png", "jpg", "jpeg", "bmp"));
+                "Imágenes (PNG, JPG, BMP)", "png", "jpg", "jpeg", "bmp"));
         fc.setAcceptAllFileFilterUsed(false);
 
         if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -1021,7 +1081,8 @@ public class VentanaPrincipal extends JFrame {
 
             try {
                 imagenOriginal = ImageIO.read(seleccionado);
-                if (imagenOriginal == null) throw new Exception("Formato no soportado.");
+                if (imagenOriginal == null)
+                    throw new Exception("Formato no soportado.");
                 imagenOriginalEsPng = esArchivoPng(seleccionado);
                 panelOriginal.setImagen(imagenOriginal);
 
@@ -1042,12 +1103,12 @@ public class VentanaPrincipal extends JFrame {
 
     private void cargarImagenBlending() {
         File dirInicial = (ultimoDirectorioCarga != null && ultimoDirectorioCarga.exists())
-            ? ultimoDirectorioCarga
-            : directorioInicialChooser();
+                ? ultimoDirectorioCarga
+                : directorioInicialChooser();
         JFileChooser fc = new JFileChooser(dirInicial);
         fc.setDialogTitle("Seleccionar segunda imagen");
         fc.addChoosableFileFilter(new FileNameExtensionFilter(
-            "Imágenes (PNG, JPG, BMP)", "png", "jpg", "jpeg", "bmp"));
+                "Imágenes (PNG, JPG, BMP)", "png", "jpg", "jpeg", "bmp"));
         fc.setAcceptAllFileFilterUsed(false);
 
         if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -1059,7 +1120,8 @@ public class VentanaPrincipal extends JFrame {
 
             try {
                 BufferedImage imagen = ImageIO.read(seleccionado);
-                if (imagen == null) throw new Exception("Formato no soportado.");
+                if (imagen == null)
+                    throw new Exception("Formato no soportado.");
                 imagenBlending = imagen;
                 lblImagenBlending.setText("Segunda imagen: " + seleccionado.getName());
                 lblImagenBlending.setForeground(C_EXITO);
@@ -1093,22 +1155,20 @@ public class VentanaPrincipal extends JFrame {
             File archivo = chooser.getSelectedFile();
             String formato = "png";
 
-            FileNameExtensionFilter filtroSeleccionado =
-                (FileNameExtensionFilter) chooser.getFileFilter();
+            FileNameExtensionFilter filtroSeleccionado = (FileNameExtensionFilter) chooser.getFileFilter();
 
             if (filtroSeleccionado == filtroJPG) {
                 formato = "jpg";
 
                 if (ProcesadorImagenes.tieneTransparenciaReal(imagenResultado)) {
                     int respuesta = JOptionPane.showConfirmDialog(
-                        this,
-                        "La imagen tiene transparencia.\n" +
-                        "Si guardas como JPG se perderá.\n\n" +
-                        "¿Deseas continuar?",
-                        "Advertencia",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                    );
+                            this,
+                            "La imagen tiene transparencia.\n" +
+                                    "Si guardas como JPG se perderá.\n\n" +
+                                    "¿Deseas continuar?",
+                            "Advertencia",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE);
 
                     if (respuesta != JOptionPane.YES_OPTION) {
                         return; // cancelar guardado
@@ -1125,10 +1185,9 @@ public class VentanaPrincipal extends JFrame {
 
                 if (formato.equals("jpg")) {
                     BufferedImage sinAlpha = new BufferedImage(
-                        imgGuardar.getWidth(),
-                        imgGuardar.getHeight(),
-                        BufferedImage.TYPE_INT_RGB
-                    );
+                            imgGuardar.getWidth(),
+                            imgGuardar.getHeight(),
+                            BufferedImage.TYPE_INT_RGB);
 
                     Graphics2D g = sinAlpha.createGraphics();
                     g.drawImage(imgGuardar, 0, 0, null);
@@ -1147,7 +1206,10 @@ public class VentanaPrincipal extends JFrame {
     }
 
     private void limpiar() {
-        imagenOriginal = null; imagenResultado = null; imagenesAmanecer = null; imagenBlending = null;
+        imagenOriginal = null;
+        imagenResultado = null;
+        imagenesAmanecer = null;
+        imagenBlending = null;
         imagenOriginalEsPng = false;
         ultimoFiltroAplicado = "";
         panelOriginal.setImagen(null);
@@ -1166,13 +1228,14 @@ public class VentanaPrincipal extends JFrame {
         }
         mostrarPlaceholderParams();
         btnVerAmanecer.setVisible(false);
-        setTitle("ImaGen Studio — UCE");  // [MEJORA 6] reset título
+        setTitle("ImaGen Studio — UCE"); // [MEJORA 6] reset título
         listaFiltros.repaint();
         actualizarEstado("listo", "Listo. Carga una imagen o genera una nueva.");
     }
 
     private void actualizarEstadoControlesBlending() {
-        if (sliderBlendingAlpha == null || comboBlendingModo == null || lblBlendingAlphaValor == null) return;
+        if (sliderBlendingAlpha == null || comboBlendingModo == null || lblBlendingAlphaValor == null)
+            return;
         boolean usaAlpha = "Alpha".equals(comboBlendingModo.getSelectedItem());
         sliderBlendingAlpha.setEnabled(usaAlpha);
         lblBlendingAlphaValor.setEnabled(usaAlpha);
@@ -1182,13 +1245,15 @@ public class VentanaPrincipal extends JFrame {
         String home = System.getProperty("user.home");
         if (home != null && !home.isBlank()) {
             File dir = new File(home);
-            if (dir.exists() && dir.isDirectory()) return dir;
+            if (dir.exists() && dir.isDirectory())
+                return dir;
         }
         return new File(".");
     }
 
     private boolean esArchivoPng(File archivo) {
-        if (archivo == null) return false;
+        if (archivo == null)
+            return false;
         String nombre = archivo.getName();
         return nombre != null && nombre.toLowerCase().endsWith(".png");
     }
@@ -1196,7 +1261,8 @@ public class VentanaPrincipal extends JFrame {
     /** Actualiza el título cuando se carga una imagen. */
     private void actualizarTitulo(String nombreArchivo) {
         String titulo = "ImaGen Studio — UCE  |  " + nombreArchivo;
-        if (!ultimoFiltroAplicado.isEmpty()) titulo += "  →  " + ultimoFiltroAplicado;
+        if (!ultimoFiltroAplicado.isEmpty())
+            titulo += "  →  " + ultimoFiltroAplicado;
         setTitle(titulo);
     }
 
@@ -1204,7 +1270,8 @@ public class VentanaPrincipal extends JFrame {
     private void actualizarTitulo() {
         String titulo = getTitle();
         // Quitar el filtro anterior si ya había uno
-        if (titulo.contains("  →  ")) titulo = titulo.substring(0, titulo.indexOf("  →  "));
+        if (titulo.contains("  →  "))
+            titulo = titulo.substring(0, titulo.indexOf("  →  "));
         setTitle(titulo + "  →  " + ultimoFiltroAplicado);
     }
 
@@ -1212,9 +1279,12 @@ public class VentanaPrincipal extends JFrame {
     // HELPERS UI
     // ─────────────────────────────────────────────────────────────────────────
 
-    /** Boton de ventana con icono dibujado con Graphics2D (sin texto, sin problemas de encoding). */
+    /**
+     * Boton de ventana con icono dibujado con Graphics2D (sin texto, sin problemas
+     * de encoding).
+     */
     private JButton crearBotonVentanaIcono(String tipo) {
-        Color colorBase  = C_ACENTO.darker().darker();
+        Color colorBase = C_ACENTO.darker().darker();
         Color colorHover = tipo.equals("close") ? C_PELIGRO : new Color(80, 130, 180);
 
         JButton btn = new JButton() {
@@ -1234,8 +1304,8 @@ public class VentanaPrincipal extends JFrame {
                 int cy = getHeight() / 2;
 
                 switch (tipo) {
-                    case "min"   -> g2.drawLine(cx - 5, cy + 2, cx + 5, cy + 2);
-                    case "max"   -> g2.drawRect(cx - 5, cy - 4, 10, 9);
+                    case "min" -> g2.drawLine(cx - 5, cy + 2, cx + 5, cy + 2);
+                    case "max" -> g2.drawRect(cx - 5, cy - 4, 10, 9);
                     case "close" -> {
                         g2.drawLine(cx - 5, cy - 4, cx + 5, cy + 4);
                         g2.drawLine(cx + 5, cy - 4, cx - 5, cy + 4);
@@ -1243,7 +1313,10 @@ public class VentanaPrincipal extends JFrame {
                 }
                 g2.dispose();
             }
-            @Override protected void paintBorder(Graphics g) {}
+
+            @Override
+            protected void paintBorder(Graphics g) {
+            }
         };
 
         btn.setBackground(colorBase);
@@ -1254,26 +1327,17 @@ public class VentanaPrincipal extends JFrame {
         btn.setPreferredSize(new Dimension(36, 26));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(colorHover); btn.repaint(); }
-            @Override public void mouseExited(MouseEvent e)  { btn.setBackground(colorBase);  btn.repaint(); }
-        });
-        return btn;
-    }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(colorHover);
+                btn.repaint();
+            }
 
-    /** Boton pequeño para controles de ventana (min/max/close). */
-    private JButton crearBotonVentana(String texto, Color colorBase, Color colorHover) {
-        JButton btn = new JButton(texto);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(colorBase);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setOpaque(true);
-        btn.setPreferredSize(new Dimension(36, 22));
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(colorHover); btn.repaint(); }
-            @Override public void mouseExited(MouseEvent e)  { btn.setBackground(colorBase);  btn.repaint(); }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(colorBase);
+                btn.repaint();
+            }
         });
         return btn;
     }
@@ -1289,7 +1353,10 @@ public class VentanaPrincipal extends JFrame {
                 g2.dispose();
                 super.paintComponent(g);
             }
-            @Override protected void paintBorder(Graphics g) {}
+
+            @Override
+            protected void paintBorder(Graphics g) {
+            }
         };
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setForeground(Color.WHITE);
@@ -1301,8 +1368,17 @@ public class VentanaPrincipal extends JFrame {
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setBorder(new EmptyBorder(8, 16, 8, 16));
         btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(color); btn.repaint(); }
-            @Override public void mouseExited(MouseEvent e)  { btn.setBackground(color.darker()); btn.repaint(); }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(color);
+                btn.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(color.darker());
+                btn.repaint();
+            }
         });
         return btn;
     }
@@ -1318,7 +1394,10 @@ public class VentanaPrincipal extends JFrame {
                 g2.dispose();
                 super.paintComponent(g);
             }
-            @Override protected void paintBorder(Graphics g) {}
+
+            @Override
+            protected void paintBorder(Graphics g) {
+            }
         };
         btn.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         btn.setBackground(inicial);
@@ -1333,13 +1412,15 @@ public class VentanaPrincipal extends JFrame {
             JColorChooser chooser = new JColorChooser(inicial);
             chooser.setPreviewPanel(new JPanel());
             JDialog dialogo = JColorChooser.createDialog(this, "Seleccionar color — " + texto,
-                true, chooser,
-                ev2 -> {
-                    Color c = chooser.getColor();
-                    btn.setBackground(c);
-                    if (texto.contains("nicio") || texto.contains("entro")) color1 = c;
-                    else color2 = c;
-                }, null);
+                    true, chooser,
+                    ev2 -> {
+                        Color c = chooser.getColor();
+                        btn.setBackground(c);
+                        if (texto.contains("nicio") || texto.contains("entro"))
+                            color1 = c;
+                        else
+                            color2 = c;
+                    }, null);
             dialogo.setVisible(true);
         });
         return btn;
@@ -1404,8 +1485,13 @@ public class VentanaPrincipal extends JFrame {
                 JLabel lbl = (JLabel) super.getListCellRendererComponent(
                         list, value, index, isSelected, cellHasFocus);
                 lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-                if (isSelected) { lbl.setBackground(C_SELECCION); lbl.setForeground(Color.WHITE); }
-                else            { lbl.setBackground(new Color(22, 25, 38)); lbl.setForeground(C_TEXTO); }
+                if (isSelected) {
+                    lbl.setBackground(C_SELECCION);
+                    lbl.setForeground(Color.WHITE);
+                } else {
+                    lbl.setBackground(new Color(22, 25, 38));
+                    lbl.setForeground(C_TEXTO);
+                }
                 lbl.setBorder(new EmptyBorder(4, 8, 4, 8));
                 return lbl;
             }
@@ -1441,5 +1527,57 @@ public class VentanaPrincipal extends JFrame {
     private void mostrarError(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
         actualizarEstado("error", "Error: " + msg);
+    }
+
+    private void abrirGrupo1() {
+        actualizarEstado("procesando", "Abriendo exposición grupo 1...");
+        SwingUtilities.invokeLater(() -> {
+            try {
+                efectos.exposiciones.grupo1.Main ventanaGrupo1 = new efectos.exposiciones.grupo1.Main();
+                ventanaGrupo1.setVisible(true);
+                actualizarEstado("exito", "Exposición grupo 1 abierta.");
+            } catch (Throwable e) {
+                mostrarError("No se pudo abrir la exposición grupo 1: " + e.getMessage());
+            }
+        });
+    }
+
+    private JScrollPane crearVisorCodigo(String codigo) {
+        JTextArea area = new JTextArea(codigo);
+        area.setEditable(false);
+        area.setFont(new Font("Consolas", Font.PLAIN, 13));
+        area.setBackground(new Color(12, 14, 22));
+        area.setForeground(C_TEXTO);
+        area.setCaretColor(C_TEXTO);
+        area.setLineWrap(false);
+        area.setWrapStyleWord(false);
+        area.setTabSize(4);
+
+        JScrollPane scroll = new JScrollPane(area);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getViewport().setBackground(new Color(12, 14, 22));
+        return scroll;
+    }
+
+    private String leerCodigoGrupo1(String archivo) {
+        for (Path ruta : rutasGrupo1(archivo)) {
+            if (Files.exists(ruta)) {
+                try {
+                    return Files.readString(ruta, StandardCharsets.UTF_8);
+                } catch (Exception e) {
+                    return "No se pudo leer el archivo: " + ruta + "\n" + e.getMessage();
+                }
+            }
+        }
+        return "No se encontró el archivo: " + archivo + "\n" +
+                "Se buscaron las rutas esperadas dentro del proyecto.";
+    }
+
+    private Path[] rutasGrupo1(String archivo) {
+        return new Path[] {
+                Paths.get("Trabajo Grupal 1", "src", "efectos", "exposiciones", "grupo1", archivo),
+                Paths.get("src", "efectos", "exposiciones", "grupo1", archivo),
+                Paths.get("efectos", "exposiciones", "grupo1", archivo)
+        };
     }
 }
