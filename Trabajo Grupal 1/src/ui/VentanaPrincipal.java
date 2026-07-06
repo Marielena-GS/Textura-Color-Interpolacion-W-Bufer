@@ -263,11 +263,19 @@ public class VentanaPrincipal extends JFrame {
         btnGrupo1.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnGrupo1.addActionListener(e -> abrirGrupo1());
 
+        JButton btnGrupo9 = crearBoton("Grupo 9", C_ACENTO2);
+        btnGrupo9.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnGrupo9.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        btnGrupo9.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnGrupo9.addActionListener(e -> mostrarDialogoGrupo9());
+
         card.add(titulo);
         card.add(Box.createVerticalStrut(4));
         card.add(descripcion);
         card.add(Box.createVerticalStrut(8));
         card.add(btnGrupo1);
+        card.add(Box.createVerticalStrut(6));
+        card.add(btnGrupo9);
         return card;
     }
 
@@ -1540,6 +1548,346 @@ public class VentanaPrincipal extends JFrame {
                 mostrarError("No se pudo abrir la exposición grupo 1: " + e.getMessage());
             }
         });
+    }
+
+    private void mostrarDialogoGrupo9() {
+        JDialog dialog = new JDialog(this, "Exposición Grupo 9", true);
+        dialog.setSize(1280, 780);
+        dialog.setMinimumSize(new Dimension(960, 620));
+        dialog.setUndecorated(true);
+        dialog.setLocationRelativeTo(this);
+        dialog.getContentPane().setBackground(C_FONDO);
+        dialog.setLayout(new BorderLayout());
+
+        // Header mimicking main window
+        JPanel barra = new JPanel(new BorderLayout(0, 0));
+        barra.setBackground(C_PANEL);
+        barra.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        JPanel filaTitulo = new JPanel(new BorderLayout());
+        filaTitulo.setBackground(C_ACENTO.darker().darker());
+        filaTitulo.setBorder(new EmptyBorder(6, 12, 6, 8));
+
+        JLabel lblTitulo = new JLabel("ImaGen Studio — Grupo 9");
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTitulo.setForeground(Color.WHITE);
+
+        JPanel controles = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        controles.setBackground(C_ACENTO.darker().darker());
+        controles.setOpaque(true);
+
+        JButton btnClose = crearBotonVentanaIcono("close");
+        btnClose.addActionListener(e -> dialog.dispose());
+        controles.add(btnClose);
+
+        filaTitulo.add(lblTitulo, BorderLayout.WEST);
+        filaTitulo.add(controles, BorderLayout.EAST);
+
+        final Point[] dragPoint = new Point[1];
+        filaTitulo.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) { dragPoint[0] = e.getPoint(); }
+        });
+        filaTitulo.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                Point loc = dialog.getLocation();
+                dialog.setLocation(loc.x + e.getX() - dragPoint[0].x, loc.y + e.getY() - dragPoint[0].y);
+            }
+        });
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(C_PANEL);
+        header.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(0, 0, 1, 0, C_BORDE),
+                new EmptyBorder(10, 18, 10, 18)));
+
+        JLabel lblH = new JLabel("● ImaGen Studio");
+        lblH.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblH.setForeground(C_ACENTO2);
+
+        JLabel lblSub = new JLabel("  Filtros Grupo 9 — Exposición");
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblSub.setForeground(C_TEXTO_DIM);
+
+        JPanel izq = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        izq.setOpaque(false);
+        izq.add(lblH);
+        izq.add(lblSub);
+        
+        header.add(izq, BorderLayout.WEST);
+
+        barra.add(filaTitulo, BorderLayout.NORTH);
+        barra.add(header, BorderLayout.CENTER);
+        
+        dialog.add(barra, BorderLayout.NORTH);
+
+        // Center Images
+        JPanel centerPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        centerPanel.setBackground(C_FONDO);
+        centerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        ImagePanel panelImg1 = new ImagePanel("Imagen Original");
+        ImagePanel panelResult = new ImagePanel("Resultado Final");
+
+        JPanel cardImg1 = new JPanel(new BorderLayout(0, 6));
+        cardImg1.setBackground(C_CARD);
+        cardImg1.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(C_BORDE), new EmptyBorder(8, 8, 8, 8)));
+        JLabel lblImg1 = new JLabel("Imagen 1 (Fondo/Principal)");
+        lblImg1.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblImg1.setForeground(C_TEXTO);
+        cardImg1.add(lblImg1, BorderLayout.NORTH);
+        cardImg1.add(panelImg1, BorderLayout.CENTER);
+
+        JPanel cardResult = new JPanel(new BorderLayout(0, 6));
+        cardResult.setBackground(C_CARD);
+        cardResult.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(C_BORDE), new EmptyBorder(8, 8, 8, 8)));
+        JLabel lblResult = new JLabel("Imagen Resultado");
+        lblResult.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblResult.setForeground(C_ACENTO2);
+        cardResult.add(lblResult, BorderLayout.NORTH);
+        cardResult.add(panelResult, BorderLayout.CENTER);
+
+        centerPanel.add(cardImg1);
+        centerPanel.add(cardResult);
+        dialog.add(centerPanel, BorderLayout.CENTER);
+
+        // Left Panel
+        JPanel leftPanel = new JPanel(new BorderLayout(0, 6));
+        leftPanel.setBackground(C_PANEL);
+        leftPanel.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(0, 0, 0, 1, C_BORDE),
+                new EmptyBorder(15, 12, 15, 12)));
+        leftPanel.setPreferredSize(new Dimension(280, 0));
+
+        String[] filtros = {
+                "Alpha Test",
+                "Depth Test",
+                "Logic Op",
+                "Stencil Test",
+                "Blending (G9)"
+        };
+        
+        JList<String> listaFiltrosG9 = new JList<>(filtros);
+        listaFiltrosG9.setBackground(C_CARD);
+        listaFiltrosG9.setForeground(C_TEXTO);
+        listaFiltrosG9.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        listaFiltrosG9.setSelectionBackground(C_SELECCION);
+        listaFiltrosG9.setSelectionForeground(Color.WHITE);
+        listaFiltrosG9.setFixedCellHeight(30);
+        listaFiltrosG9.setBorder(new EmptyBorder(0, 0, 0, 0));
+        
+        listaFiltrosG9.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                lbl.setBorder(new EmptyBorder(2, 10, 2, 0));
+                return lbl;
+            }
+        });
+        
+        JScrollPane scrollFiltros = new JScrollPane(listaFiltrosG9);
+        scrollFiltros.setBorder(BorderFactory.createLineBorder(C_BORDE));
+        scrollFiltros.getViewport().setBackground(C_CARD);
+        scrollFiltros.setPreferredSize(new Dimension(260, 160));
+
+        JPanel panelParamsG9 = new JPanel();
+        panelParamsG9.setLayout(new BoxLayout(panelParamsG9, BoxLayout.Y_AXIS));
+        panelParamsG9.setBackground(C_CARD);
+        panelParamsG9.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(C_BORDE), new EmptyBorder(10, 10, 10, 10)));
+
+        JSlider sUmbral = new JSlider(0, 255, 128);
+        sUmbral.setOpaque(false);
+        sUmbral.setForeground(C_TEXTO_DIM);
+        JLabel lblUmbral = labelParam("Umbral: 128");
+        sUmbral.addChangeListener(e -> lblUmbral.setText("Umbral: " + sUmbral.getValue()));
+
+        JSlider sZ1 = new JSlider(-100, 100, 10);
+        sZ1.setOpaque(false);
+        sZ1.setForeground(C_TEXTO_DIM);
+        JLabel lblZ1 = labelParam("Z Fondo: 10");
+        sZ1.addChangeListener(e -> lblZ1.setText("Z Fondo: " + sZ1.getValue()));
+
+        JSlider sZ2 = new JSlider(-100, 100, 5);
+        sZ2.setOpaque(false);
+        sZ2.setForeground(C_TEXTO_DIM);
+        JLabel lblZ2 = labelParam("Z Frente: 5");
+        sZ2.addChangeListener(e -> lblZ2.setText("Z Frente: " + sZ2.getValue()));
+
+        JComboBox<String> cLogic = new JComboBox<>(new String[]{"XOR", "AND", "OR"});
+        estilizarCombo(cLogic);
+        
+        JSlider sRadio = new JSlider(10, 1000, 150);
+        sRadio.setOpaque(false);
+        sRadio.setForeground(C_TEXTO_DIM);
+        JLabel lblRadio = labelParam("Radio (px): 150");
+        sRadio.addChangeListener(e -> lblRadio.setText("Radio (px): " + sRadio.getValue()));
+
+        JSlider sAlpha = crearSliderAlpha();
+        JLabel lblAlpha = labelParam("Alpha: 50%");
+        sAlpha.addChangeListener(e -> lblAlpha.setText("Alpha: " + sAlpha.getValue() + "%"));
+
+        JButton btnImg1 = crearBoton("Cargar Imagen 1", C_ACENTO);
+        JButton btnImg2 = crearBoton("Cargar Imagen 2", C_ACENTO2);
+        JButton btnAplicarG9 = crearBoton("Aplicar Filtro", C_EXITO);
+        JButton btnGuardarG9 = crearBoton("Guardar Resultado", C_TEXTO);
+        btnGuardarG9.setEnabled(false);
+
+        final BufferedImage[] imgs = new BufferedImage[2];
+        final BufferedImage[] resultadoLocal = new BufferedImage[1];
+        final String[] filtroActivo = {""};
+
+        btnImg1.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser(ultimoDirectorioCarga);
+            if (fc.showOpenDialog(dialog) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    imgs[0] = ImageIO.read(fc.getSelectedFile());
+                    panelImg1.setImagen(imgs[0]);
+                    ultimoDirectorioCarga = fc.getSelectedFile().getParentFile();
+                } catch (Exception ex) {
+                }
+            }
+        });
+
+        btnImg2.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser(ultimoDirectorioCarga);
+            if (fc.showOpenDialog(dialog) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    imgs[1] = ImageIO.read(fc.getSelectedFile());
+                    ultimoDirectorioCarga = fc.getSelectedFile().getParentFile();
+                    JOptionPane.showMessageDialog(dialog, "Imagen 2 (Frente) cargada correctamente: " + fc.getSelectedFile().getName(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                }
+            }
+        });
+        
+        btnGuardarG9.addActionListener(e -> {
+            if (resultadoLocal[0] == null) return;
+            JFileChooser chooser = new JFileChooser(ultimoDirectorioCarga);
+            chooser.setDialogTitle("Guardar imagen");
+            chooser.setFileFilter(new FileNameExtensionFilter("PNG", "png"));
+            if (chooser.showSaveDialog(dialog) == JFileChooser.APPROVE_OPTION) {
+                File archivo = chooser.getSelectedFile();
+                if (!archivo.getName().toLowerCase().endsWith(".png")) {
+                    archivo = new File(archivo.getParentFile(), archivo.getName() + ".png");
+                }
+                try {
+                    ImageIO.write(resultadoLocal[0], "png", archivo);
+                    JOptionPane.showMessageDialog(dialog, "Guardado exitoso");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialog, "Error al guardar");
+                }
+            }
+        });
+
+        Runnable updateParams = () -> {
+            panelParamsG9.removeAll();
+            String sel = listaFiltrosG9.getSelectedValue();
+            if (sel == null) {
+                panelParamsG9.add(labelParam("Selecciona un filtro."));
+                panelParamsG9.revalidate();
+                panelParamsG9.repaint();
+                return;
+            }
+            filtroActivo[0] = sel;
+            
+            JLabel lblFiltro = labelParam("Parámetros: " + sel);
+            lblFiltro.setForeground(C_ACENTO2);
+            panelParamsG9.add(lblFiltro);
+            panelParamsG9.add(Box.createVerticalStrut(10));
+            btnImg2.setVisible(sel.equals("Depth Test") || sel.equals("Logic Op") || sel.equals("Blending (G9)"));
+
+            if (sel.equals("Alpha Test")) {
+                panelParamsG9.add(lblUmbral);
+                panelParamsG9.add(Box.createVerticalStrut(4));
+                panelParamsG9.add(filaCompleta(sUmbral));
+            } else if (sel.equals("Depth Test")) {
+                panelParamsG9.add(lblZ1);
+                panelParamsG9.add(Box.createVerticalStrut(4));
+                panelParamsG9.add(filaCompleta(sZ1));
+                panelParamsG9.add(Box.createVerticalStrut(10));
+                panelParamsG9.add(lblZ2);
+                panelParamsG9.add(Box.createVerticalStrut(4));
+                panelParamsG9.add(filaCompleta(sZ2));
+            } else if (sel.equals("Logic Op")) {
+                panelParamsG9.add(labelParam("Operación:"));
+                panelParamsG9.add(Box.createVerticalStrut(4));
+                panelParamsG9.add(filaCompleta(cLogic));
+            } else if (sel.equals("Stencil Test")) {
+                panelParamsG9.add(lblRadio);
+                panelParamsG9.add(Box.createVerticalStrut(4));
+                panelParamsG9.add(filaCompleta(sRadio));
+            } else if (sel.equals("Blending (G9)")) {
+                panelParamsG9.add(lblAlpha);
+                panelParamsG9.add(Box.createVerticalStrut(4));
+                panelParamsG9.add(filaCompleta(sAlpha));
+            }
+            panelParamsG9.revalidate();
+            panelParamsG9.repaint();
+        };
+
+        listaFiltrosG9.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) updateParams.run();
+        });
+        
+        listaFiltrosG9.setSelectedIndex(0);
+
+        btnAplicarG9.addActionListener(e -> {
+            if (imgs[0] == null) {
+                JOptionPane.showMessageDialog(dialog, "Por favor carga la Imagen 1 primero.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            String sel = filtroActivo[0];
+            if (sel.isEmpty()) return;
+            
+            if ((sel.equals("Depth Test") || sel.equals("Logic Op") || sel.equals("Blending (G9)")) && imgs[1] == null) {
+                JOptionPane.showMessageDialog(dialog, "Este filtro requiere la Imagen 2.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                BufferedImage res = null;
+                switch (sel) {
+                    case "Alpha Test" ->
+                            res = ProcesadorImagenes.alphaTestGrupo9(imgs[0], sUmbral.getValue());
+                    case "Depth Test" ->
+                            res = ProcesadorImagenes.depthTestGrupo9(imgs[0], imgs[1], (float) sZ1.getValue(), (float) sZ2.getValue());
+                    case "Logic Op" ->
+                            res = ProcesadorImagenes.logicOpGrupo9(imgs[0], imgs[1], (String) cLogic.getSelectedItem());
+                    case "Stencil Test" ->
+                            res = ProcesadorImagenes.stencilTestGrupo9(imgs[0], sRadio.getValue());
+                    case "Blending (G9)" ->
+                            res = ProcesadorImagenes.blendingGrupo9(imgs[0], imgs[1], sAlpha.getValue() / 100f);
+                }
+                if (res != null) {
+                    resultadoLocal[0] = res;
+                    panelResult.setImagen(res);
+                    btnGuardarG9.setEnabled(true);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Error al procesar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        JPanel panelAcciones = new JPanel();
+        panelAcciones.setLayout(new BoxLayout(panelAcciones, BoxLayout.Y_AXIS));
+        panelAcciones.setOpaque(false);
+        panelAcciones.add(filaCompleta(btnImg1));
+        panelAcciones.add(Box.createVerticalStrut(6));
+        panelAcciones.add(filaCompleta(btnImg2));
+        panelAcciones.add(Box.createVerticalStrut(15));
+        panelAcciones.add(panelParamsG9);
+        panelAcciones.add(Box.createVerticalGlue());
+        panelAcciones.add(filaCompleta(btnAplicarG9));
+        panelAcciones.add(Box.createVerticalStrut(6));
+        panelAcciones.add(filaCompleta(btnGuardarG9));
+
+        leftPanel.add(scrollFiltros, BorderLayout.NORTH);
+        leftPanel.add(panelAcciones, BorderLayout.CENTER);
+
+        dialog.add(leftPanel, BorderLayout.WEST);
+        dialog.setVisible(true);
     }
 
     private JScrollPane crearVisorCodigo(String codigo) {

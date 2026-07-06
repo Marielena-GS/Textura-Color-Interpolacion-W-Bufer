@@ -807,4 +807,122 @@ public class ProcesadorImagenes {
 	    }
 	    return false;
 	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// EXPOSICIÓN GRUPO 9
+	// ─────────────────────────────────────────────────────────────────────────
+
+	public static BufferedImage alphaTestGrupo9(BufferedImage img, int umbral) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage salida = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel = img.getRGB(x, y);
+				Color c = new Color(pixel, true);
+				int promedio = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
+
+				if (promedio > umbral) {
+					salida.setRGB(x, y, pixel);
+				} else {
+					salida.setRGB(x, y, 0); // transparente
+				}
+			}
+		}
+		return salida;
+	}
+
+	public static BufferedImage depthTestGrupo9(BufferedImage img1, BufferedImage img2, float z1, float z2) {
+		validar(img1);
+		validar(img2);
+		int ancho = Math.min(img1.getWidth(), img2.getWidth());
+		int alto = Math.min(img1.getHeight(), img2.getHeight());
+		BufferedImage salida = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				if (z2 < z1) {
+					salida.setRGB(x, y, img2.getRGB(x, y));
+				} else {
+					salida.setRGB(x, y, img1.getRGB(x, y));
+				}
+			}
+		}
+		return salida;
+	}
+
+	public static BufferedImage logicOpGrupo9(BufferedImage img1, BufferedImage img2, String operacion) {
+		validar(img1);
+		validar(img2);
+		int ancho = Math.min(img1.getWidth(), img2.getWidth());
+		int alto = Math.min(img1.getHeight(), img2.getHeight());
+		BufferedImage salida = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int pixel1 = img1.getRGB(x, y);
+				int pixel2 = img2.getRGB(x, y);
+				int resultado;
+				
+				if ("AND".equalsIgnoreCase(operacion)) {
+					resultado = pixel1 & pixel2;
+				} else if ("OR".equalsIgnoreCase(operacion)) {
+					resultado = pixel1 | pixel2;
+				} else { // XOR
+					resultado = pixel1 ^ pixel2;
+				}
+
+				salida.setRGB(x, y, resultado);
+			}
+		}
+		return salida;
+	}
+
+	public static BufferedImage stencilTestGrupo9(BufferedImage img, int radio) {
+		validar(img);
+		int ancho = img.getWidth();
+		int alto = img.getHeight();
+		BufferedImage salida = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+		int centroX = ancho / 2;
+		int centroY = alto / 2;
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int dx = x - centroX;
+				int dy = y - centroY;
+				if (dx * dx + dy * dy <= radio * radio) {
+					salida.setRGB(x, y, img.getRGB(x, y));
+				} else {
+					salida.setRGB(x, y, 0);
+				}
+			}
+		}
+		return salida;
+	}
+
+	public static BufferedImage blendingGrupo9(BufferedImage fondo, BufferedImage frente, float alpha) {
+		validar(fondo);
+		validar(frente);
+		int ancho = Math.min(fondo.getWidth(), frente.getWidth());
+		int alto = Math.min(fondo.getHeight(), frente.getHeight());
+		BufferedImage salida = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
+
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				Color c1 = new Color(fondo.getRGB(x, y), true);
+				Color c2 = new Color(frente.getRGB(x, y), true);
+
+				int r = (int) (alpha * c2.getRed() + (1 - alpha) * c1.getRed());
+				int g = (int) (alpha * c2.getGreen() + (1 - alpha) * c1.getGreen());
+				int b = (int) (alpha * c2.getBlue() + (1 - alpha) * c1.getBlue());
+				
+				Color mezcla = new Color(r, g, b);
+				salida.setRGB(x, y, mezcla.getRGB());
+			}
+		}
+		return salida;
+	}
 }
