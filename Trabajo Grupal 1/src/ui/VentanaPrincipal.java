@@ -269,11 +269,19 @@ public class VentanaPrincipal extends JFrame {
         btnGrupo9.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnGrupo9.addActionListener(e -> mostrarDialogoGrupo9());
 
+        JButton btnGrupo2 = crearBoton("Grupo 2", C_ACENTO2);
+        btnGrupo2.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnGrupo2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        btnGrupo2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnGrupo2.addActionListener(e -> mostrarDialogoGrupo2());
+
         card.add(titulo);
         card.add(Box.createVerticalStrut(4));
         card.add(descripcion);
         card.add(Box.createVerticalStrut(8));
         card.add(btnGrupo1);
+        card.add(Box.createVerticalStrut(6));
+        card.add(btnGrupo2);
         card.add(Box.createVerticalStrut(6));
         card.add(btnGrupo9);
         return card;
@@ -1887,6 +1895,200 @@ public class VentanaPrincipal extends JFrame {
         leftPanel.add(panelAcciones, BorderLayout.CENTER);
 
         dialog.add(leftPanel, BorderLayout.WEST);
+        dialog.setVisible(true);
+    }
+
+    private void mostrarDialogoGrupo2() {
+        JDialog dialog = new JDialog(this, "Exposición Grupo 2", true);
+        dialog.setSize(1280, 780);
+        dialog.setMinimumSize(new Dimension(960, 620));
+        dialog.setUndecorated(true);
+        dialog.setLocationRelativeTo(this);
+        dialog.getContentPane().setBackground(C_FONDO);
+        dialog.setLayout(new BorderLayout());
+
+        JPanel barra = new JPanel(new BorderLayout(0, 0));
+        barra.setBackground(C_PANEL);
+        barra.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        JPanel filaTitulo = new JPanel(new BorderLayout());
+        filaTitulo.setBackground(C_ACENTO.darker().darker());
+        filaTitulo.setBorder(new EmptyBorder(6, 12, 6, 8));
+
+        JLabel lblTitulo = new JLabel("ImaGen Studio — Grupo 2");
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTitulo.setForeground(Color.WHITE);
+
+        JPanel controles = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        controles.setBackground(C_ACENTO.darker().darker());
+        controles.setOpaque(true);
+
+        JButton btnClose = crearBotonVentanaIcono("close");
+        btnClose.addActionListener(e -> dialog.dispose());
+        controles.add(btnClose);
+
+        filaTitulo.add(lblTitulo, BorderLayout.WEST);
+        filaTitulo.add(controles, BorderLayout.EAST);
+
+        final Point[] dragPoint = new Point[1];
+        filaTitulo.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) { dragPoint[0] = e.getPoint(); }
+        });
+        filaTitulo.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                Point loc = dialog.getLocation();
+                dialog.setLocation(loc.x + e.getX() - dragPoint[0].x, loc.y + e.getY() - dragPoint[0].y);
+            }
+        });
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(C_PANEL);
+        header.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(0, 0, 1, 0, C_BORDE),
+                new EmptyBorder(10, 18, 10, 18)));
+
+        JLabel lblH = new JLabel("● ImaGen Studio");
+        lblH.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblH.setForeground(C_ACENTO2);
+
+        JLabel lblSub = new JLabel("  Cartel 3D (Textura, Color, W-Bufer) — Grupo 2");
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblSub.setForeground(C_TEXTO_DIM);
+
+        JPanel izq = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        izq.setOpaque(false);
+        izq.add(lblH);
+        izq.add(lblSub);
+        
+        header.add(izq, BorderLayout.WEST);
+
+        barra.add(filaTitulo, BorderLayout.NORTH);
+        barra.add(header, BorderLayout.CENTER);
+        
+        dialog.add(barra, BorderLayout.NORTH);
+
+        JPanel centerPanel = new JPanel(new BorderLayout(0, 0));
+        centerPanel.setBackground(C_FONDO);
+        centerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        ImagePanel panelResult = new ImagePanel("Resultado Rasterizador");
+        
+        JPanel cardResult = new JPanel(new BorderLayout(0, 6));
+        cardResult.setBackground(C_CARD);
+        cardResult.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(C_BORDE), new EmptyBorder(8, 8, 8, 8)));
+        JLabel lblResult = new JLabel("Lienzo de Renderizado (800x600)");
+        lblResult.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblResult.setForeground(C_ACENTO2);
+        cardResult.add(lblResult, BorderLayout.NORTH);
+        cardResult.add(panelResult, BorderLayout.CENTER);
+        
+        centerPanel.add(cardResult, BorderLayout.CENTER);
+        dialog.add(centerPanel, BorderLayout.CENTER);
+
+        JPanel leftPanel = new JPanel(new BorderLayout(0, 6));
+        leftPanel.setBackground(C_PANEL);
+        leftPanel.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(0, 0, 0, 1, C_BORDE),
+                new EmptyBorder(15, 12, 15, 12)));
+        leftPanel.setPreferredSize(new Dimension(280, 0));
+
+        String[] filtros = {
+                "Textura",
+                "Color Interpolado",
+                "Interpolación Profundidad (1/W)",
+                "W-Buffering",
+                "Completo"
+        };
+        
+        JList<String> listaModos = new JList<>(filtros);
+        listaModos.setBackground(C_CARD);
+        listaModos.setForeground(C_TEXTO);
+        listaModos.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        listaModos.setSelectionBackground(C_SELECCION);
+        listaModos.setSelectionForeground(Color.WHITE);
+        listaModos.setFixedCellHeight(30);
+        listaModos.setBorder(new EmptyBorder(0, 0, 0, 0));
+        
+        listaModos.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                lbl.setBorder(new EmptyBorder(2, 10, 2, 0));
+                return lbl;
+            }
+        });
+        
+        JScrollPane scrollFiltros = new JScrollPane(listaModos);
+        scrollFiltros.setBorder(BorderFactory.createLineBorder(C_BORDE));
+        scrollFiltros.getViewport().setBackground(C_CARD);
+        scrollFiltros.setPreferredSize(new Dimension(260, 160));
+
+        JButton btnGuardar = crearBoton("Guardar Resultado", C_TEXTO);
+        btnGuardar.setEnabled(false);
+        
+        final BufferedImage[] resultadoLocal = new BufferedImage[1];
+        
+        listaModos.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int modo = listaModos.getSelectedIndex() + 1; // 1 to 5
+                listaModos.setEnabled(false); // disable while rendering
+                
+                SwingWorker<BufferedImage, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected BufferedImage doInBackground() throws Exception {
+                        return ProcesadorImagenes.generarRasterizadoGrupo2(modo, 800, 600);
+                    }
+                    
+                    @Override
+                    protected void done() {
+                        try {
+                            BufferedImage res = get();
+                            resultadoLocal[0] = res;
+                            panelResult.setImagen(res);
+                            btnGuardar.setEnabled(true);
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(dialog, "Error al generar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        } finally {
+                            listaModos.setEnabled(true);
+                        }
+                    }
+                };
+                worker.execute();
+            }
+        });
+
+        listaModos.setSelectedIndex(4); // Completo por defecto
+        
+        btnGuardar.addActionListener(e -> {
+            if (resultadoLocal[0] == null) return;
+            JFileChooser chooser = new JFileChooser(ultimoDirectorioCarga);
+            chooser.setDialogTitle("Guardar imagen");
+            chooser.setFileFilter(new FileNameExtensionFilter("PNG", "png"));
+            if (chooser.showSaveDialog(dialog) == JFileChooser.APPROVE_OPTION) {
+                File archivo = chooser.getSelectedFile();
+                if (!archivo.getName().toLowerCase().endsWith(".png")) {
+                    archivo = new File(archivo.getParentFile(), archivo.getName() + ".png");
+                }
+                try {
+                    ImageIO.write(resultadoLocal[0], "png", archivo);
+                    JOptionPane.showMessageDialog(dialog, "Guardado exitoso");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialog, "Error al guardar");
+                }
+            }
+        });
+
+        JPanel panelAcciones = new JPanel();
+        panelAcciones.setLayout(new BoxLayout(panelAcciones, BoxLayout.Y_AXIS));
+        panelAcciones.setOpaque(false);
+        panelAcciones.add(Box.createVerticalGlue());
+        panelAcciones.add(filaCompleta(btnGuardar));
+
+        leftPanel.add(scrollFiltros, BorderLayout.NORTH);
+        leftPanel.add(panelAcciones, BorderLayout.CENTER);
+
+        dialog.add(leftPanel, BorderLayout.WEST);
+        
         dialog.setVisible(true);
     }
 

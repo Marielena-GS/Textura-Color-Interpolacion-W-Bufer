@@ -925,4 +925,222 @@ public class ProcesadorImagenes {
 		}
 		return salida;
 	}
+
+	// =========================================================================
+	// GRUPO 2: RASTERIZACIÓN DE CARTELES 3D (Z-BUFFER Y W-BUFFER)
+	// =========================================================================
+
+	public static class VertexG2 {
+		float x, y, w, r, g, b, u, v;
+
+		public VertexG2(float x, float y, float w, float r, float g, float b, float u, float v) {
+			this.x = x; this.y = y; this.w = w;
+			this.r = r; this.g = g; this.b = b;
+			this.u = u; this.v = v;
+		}
+	}
+
+	private static float edgeG2(float ax, float ay, float bx, float by, float cx, float cy) {
+		return (cx - ax) * (by - ay) - (cy - ay) * (bx - ax);
+	}
+
+	private static boolean dentroTrianguloG2(float w0, float w1, float w2, float area) {
+		if (area > 0) return w0 >= 0 && w1 >= 0 && w2 >= 0;
+		return w0 <= 0 && w1 <= 0 && w2 <= 0;
+	}
+
+	private static int mezclarColorG2(int texRGB, float r, float g, float b) {
+		int tr = (texRGB >> 16) & 0xFF;
+		int tg = (texRGB >> 8) & 0xFF;
+		int tb = texRGB & 0xFF;
+		int fr = Math.min(255, (int) (tr * r));
+		int fg = Math.min(255, (int) (tg * g));
+		int fb = Math.min(255, (int) (tb * b));
+		return (255 << 24) | (fr << 16) | (fg << 8) | fb;
+	}
+
+	private static void rasterizarTrianguloG2(int[] canvasPix, int width, int height, 
+											  int[] texPix, int tWidth, int tHeight, float[][] wBuffer,
+											  VertexG2 v0, VertexG2 v1, VertexG2 v2,
+											  boolean usarTextura, boolean usarColor,
+											  boolean perspectivaCorrecta, boolean usarWBuffer) {
+		int minX = (int) Math.max(0, Math.min(v0.x, Math.min(v1.x, v2.x)));
+		int maxX = (int) Math.min(width - 1, Math.max(v0.x, Math.max(v1.x, v2.x)));
+		int minY = (int) Math.max(0, Math.min(v0.y, Math.min(v1.y, v2.y)));
+		int maxY = (int) Math.min(height - 1, Math.max(v0.y, Math.max(v1.y, v2.y)));
+
+		float area = edgeG2(v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
+		if (area == 0) return;
+
+		for (int y = minY; y <= maxY; y++) {
+			for (int x = minX; x <= maxX; x++) {
+				float w0 = edgeG2(v1.x, v1.y, v2.x, v2.y, x, y);
+				float w1 = edgeG2(v2.x, v2.y, v0.x, v0.y, x, y);
+				float w2 = edgeG2(v0.x, v0.y, v1.x, v1.y, x, y);
+
+				if (!dentroTrianguloG2(w0, w1, w2, area)) continue;
+
+				w0 /= area;
+				w1 /= area;
+				w2 /= area;
+
+				float invW = (w0 * (1f / v0.w)) + (w1 * (1f / v1.w)) + (w2 * (1f / v2.w));
+
+				if (usarWBuffer) {
+					if (invW <= wBuffer[x][y]) continue;
+					wBuffer[x][y] = invW;
+				}
+
+				float r, g, b, u, v;
+
+				if (perspectivaCorrecta) {
+					r = (w0 * v0.r / v0.w + w1 * v1.r / v1.w + w2 * v2.r / v2.w) / invW;
+					g = (w0 * v0.g / v0.w + w1 * v1.g / v1.w + w2 * v2.g / v2.w) / invW;
+					b = (w0 * v0.b / v0.w + w1 * v1.b / v1.w + w2 * v2.b / v2.w) / invW;
+					u = (w0 * v0.u / v0.w + w1 * v1.u / v1.w + w2 * v2.u / v2.w) / invW;
+					v = (w0 * v0.v / v0.w + w1 * v1.v / v1.w + w2 * v2.v / v2.w) / invW;
+				} else {
+					r = w0 * v0.r + w1 * v1.r + w2 * v2.r;
+					g = w0 * v0.g + w1 * v1.g + w2 * v2.g;
+					b = w0 * v0.b + w1 * v1.b + w2 * v2.b;
+					u = w0 * v0.u + w1 * v1.u + w2 * v2.u;
+					v = w0 * v0.v + w1 * v1.v + w2 * v2.v;
+				}
+
+				int finalRGB;
+
+				if (usarTextura && usarColor) {
+					int tx = Math.max(0, Math.min(tWidth - 1, (int) (u * (tWidth - 1))));
+					int ty = Math.max(0, Math.min(tHeight - 1, (int) (v * (tHeight - 1))));
+					int texColor = texPix[tx + ty * tWidth];
+					finalRGB = mezclarColorG2(texColor, r, g, b);
+				} else if (usarTextura) {
+					int tx = Math.max(0, Math.min(tWidth - 1, (int) (u * (tWidth - 1))));
+					int ty = Math.max(0, Math.min(tHeight - 1, (int) (v * (tHeight - 1))));
+					finalRGB = texPix[tx + ty * tWidth];
+				} else if (usarColor) {
+					int fr = Math.min(255, (int) (r * 255));
+					int fg = Math.min(255, (int) (g * 255));
+					int fb = Math.min(255, (int) (b * 255));
+					finalRGB = (255 << 24) | (fr << 16) | (fg << 8) | fb;
+				} else {
+					finalRGB = 0xFFFFFFFF;
+				}
+
+				canvasPix[x + y * width] = finalRGB;
+			}
+		}
+	}
+
+	public static BufferedImage generarRasterizadoGrupo2(int modo, int width, int height) {
+		BufferedImage canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		BufferedImage textura = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB);
+		float[][] wBuffer = new float[width][height];
+
+		int[] canvasPix = ((java.awt.image.DataBufferInt) canvas.getRaster().getDataBuffer()).getData();
+		int[] texPix = ((java.awt.image.DataBufferInt) textura.getRaster().getDataBuffer()).getData();
+
+		for (int y = 0; y < textura.getHeight(); y++) {
+			for (int x = 0; x < textura.getWidth(); x++) {
+				boolean cuadro = ((x / 32) + (y / 32)) % 2 == 0;
+				texPix[x + y * 256] = cuadro ? 0xFFFFFFFF : 0xFF000000;
+			}
+		}
+
+		for (int i = 0; i < width; i++) {
+			java.util.Arrays.fill(wBuffer[i], Float.NEGATIVE_INFINITY);
+		}
+
+		Graphics2D g = canvas.createGraphics();
+		g.setColor(Color.DARK_GRAY);
+		g.fillRect(0, 0, width, height);
+		g.setColor(Color.WHITE);
+		g.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+
+		switch (modo) {
+			case 1 -> { // Textura
+				g.drawString("TEXTURA", 20, 30);
+				VertexG2 a = new VertexG2(140, 120, 1.0f, 1, 1, 1, 0, 0);
+				VertexG2 b = new VertexG2(620, 150, 0.8f, 1, 1, 1, 1, 0);
+				VertexG2 c = new VertexG2(600, 470, 0.6f, 1, 1, 1, 1, 1);
+				VertexG2 d = new VertexG2(160, 440, 0.9f, 1, 1, 1, 0, 1);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, b, c, true, false, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, c, d, true, false, true, false);
+			}
+			case 2 -> { // Color
+				g.drawString("COLOR INTERPOLADO", 20, 30);
+				VertexG2 a = new VertexG2(140, 120, 1.0f, 1, 0, 0, 0, 0);
+				VertexG2 b = new VertexG2(620, 150, 0.8f, 0, 1, 0, 1, 0);
+				VertexG2 c = new VertexG2(600, 470, 0.6f, 0, 0, 1, 1, 1);
+				VertexG2 d = new VertexG2(160, 440, 0.9f, 1, 1, 0, 0, 1);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, b, c, false, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, c, d, false, true, true, false);
+			}
+			case 3 -> { // Profundidad
+				g.drawString("INTERPOLACION EN PROFUNDIDAD", 20, 30);
+				g.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
+				g.drawString("Izquierda: sin correccion | Derecha: con correccion 1/W", 20, 50);
+
+				VertexG2 a1 = new VertexG2(70, 120, 1.0f, 1, 1, 1, 0, 0);
+				VertexG2 b1 = new VertexG2(320, 150, 0.5f, 1, 1, 1, 1, 0);
+				VertexG2 c1 = new VertexG2(300, 460, 0.2f, 1, 1, 1, 1, 1);
+				VertexG2 d1 = new VertexG2(80, 430, 0.8f, 1, 1, 1, 0, 1);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a1, b1, c1, true, false, false, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a1, c1, d1, true, false, false, false);
+
+				VertexG2 a2 = new VertexG2(430, 120, 1.0f, 1, 1, 1, 0, 0);
+				VertexG2 b2 = new VertexG2(720, 150, 0.5f, 1, 1, 1, 1, 0);
+				VertexG2 c2 = new VertexG2(700, 460, 0.2f, 1, 1, 1, 1, 1);
+				VertexG2 d2 = new VertexG2(450, 430, 0.8f, 1, 1, 1, 0, 1);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a2, b2, c2, true, false, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a2, c2, d2, true, false, true, false);
+			}
+			case 4 -> { // W-Buffering
+				g.drawString("W-BUFFERING", 20, 30);
+				g.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
+				g.drawString("Izquierda: sin W-Buffer | Derecha: con W-Buffer", 20, 50);
+
+				VertexG2 a1 = new VertexG2(100, 120, 1.0f, 1, 0, 0, 0, 0);
+				VertexG2 b1 = new VertexG2(300, 160, 1.0f, 0, 1, 0, 1, 0);
+				VertexG2 c1 = new VertexG2(270, 470, 1.0f, 0, 0, 1, 1, 1);
+				VertexG2 d1 = new VertexG2(120, 430, 1.0f, 1, 1, 0, 0, 1);
+
+				VertexG2 a2 = new VertexG2(160, 170, 0.3f, 1, 1, 0, 0, 0);
+				VertexG2 b2 = new VertexG2(360, 210, 0.3f, 1, 0, 1, 1, 0);
+				VertexG2 c2 = new VertexG2(330, 500, 0.3f, 0, 1, 1, 1, 1);
+				VertexG2 d2 = new VertexG2(180, 460, 0.3f, 1, 0.5f, 0, 0, 1);
+
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a1, b1, c1, true, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a1, c1, d1, true, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a2, b2, c2, true, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a2, c2, d2, true, true, true, false);
+
+				VertexG2 a3 = new VertexG2(450, 120, 1.0f, 1, 0, 0, 0, 0);
+				VertexG2 b3 = new VertexG2(650, 160, 1.0f, 0, 1, 0, 1, 0);
+				VertexG2 c3 = new VertexG2(620, 470, 1.0f, 0, 0, 1, 1, 1);
+				VertexG2 d3 = new VertexG2(470, 430, 1.0f, 1, 1, 0, 0, 1);
+
+				VertexG2 a4 = new VertexG2(510, 170, 0.3f, 1, 1, 0, 0, 0);
+				VertexG2 b4 = new VertexG2(710, 210, 0.3f, 1, 0, 1, 1, 0);
+				VertexG2 c4 = new VertexG2(680, 500, 0.3f, 0, 1, 1, 1, 1);
+				VertexG2 d4 = new VertexG2(530, 460, 0.3f, 1, 0.5f, 0, 0, 1);
+
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a3, b3, c3, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a3, c3, d3, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a4, b4, c4, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a4, c4, d4, true, true, true, true);
+			}
+			case 5 -> { // Completo
+				g.drawString("COMPLETO", 20, 30);
+				VertexG2 a = new VertexG2(140, 120, 1.0f, 1, 0, 0, 0, 0);
+				VertexG2 b = new VertexG2(620, 150, 0.8f, 0, 1, 0, 1, 0);
+				VertexG2 c = new VertexG2(600, 470, 0.6f, 0, 0, 1, 1, 1);
+				VertexG2 d = new VertexG2(160, 440, 0.9f, 1, 1, 0, 0, 1);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, b, c, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, c, d, true, true, true, true);
+			}
+		}
+		g.dispose();
+		return canvas;
+	}
 }
