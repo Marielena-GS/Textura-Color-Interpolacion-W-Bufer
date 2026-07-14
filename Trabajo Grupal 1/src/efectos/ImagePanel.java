@@ -58,6 +58,12 @@ public class ImagePanel extends JPanel {
         setToolTipText("Scroll: zoom  |  Doble clic: reset zoom");
     }
 
+    /** Actualiza el mensaje que se muestra cuando no hay imagen. */
+    public void setMensajePlaceholder(String msg) {
+        this.mensajePlaceholder = msg != null ? msg : "";
+        repaint();
+    }
+
     /** Actualiza la imagen mostrada, resetea zoom y repinta. */
     public void setImagen(BufferedImage img) {
         this.imagen = img;

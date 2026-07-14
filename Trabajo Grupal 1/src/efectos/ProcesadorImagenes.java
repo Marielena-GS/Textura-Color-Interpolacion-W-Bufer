@@ -1032,19 +1032,34 @@ public class ProcesadorImagenes {
 		}
 	}
 
-	public static BufferedImage generarRasterizadoGrupo2(int modo, int width, int height) {
+	public static BufferedImage generarRasterizadoGrupo2(int modo, int width, int height, BufferedImage customTex) {
 		BufferedImage canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		BufferedImage textura = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB);
+		BufferedImage textura;
+		
+		if (customTex != null) {
+			textura = customTex;
+		} else {
+			textura = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB);
+			int[] texPix = ((java.awt.image.DataBufferInt) textura.getRaster().getDataBuffer()).getData();
+			for (int y = 0; y < textura.getHeight(); y++) {
+				for (int x = 0; x < textura.getWidth(); x++) {
+					boolean cuadro = ((x / 32) + (y / 32)) % 2 == 0;
+					texPix[x + y * 256] = cuadro ? 0xFFFFFFFF : 0xFF000000;
+				}
+			}
+		}
+		
+		int texWidth = textura.getWidth();
+		int texHeight = textura.getHeight();
+
 		float[][] wBuffer = new float[width][height];
 
 		int[] canvasPix = ((java.awt.image.DataBufferInt) canvas.getRaster().getDataBuffer()).getData();
-		int[] texPix = ((java.awt.image.DataBufferInt) textura.getRaster().getDataBuffer()).getData();
-
-		for (int y = 0; y < textura.getHeight(); y++) {
-			for (int x = 0; x < textura.getWidth(); x++) {
-				boolean cuadro = ((x / 32) + (y / 32)) % 2 == 0;
-				texPix[x + y * 256] = cuadro ? 0xFFFFFFFF : 0xFF000000;
-			}
+		int[] texPix;
+		if (textura.getType() == BufferedImage.TYPE_INT_RGB || textura.getType() == BufferedImage.TYPE_INT_ARGB) {
+			texPix = ((java.awt.image.DataBufferInt) textura.getRaster().getDataBuffer()).getData();
+		} else {
+			texPix = textura.getRGB(0, 0, texWidth, texHeight, null, 0, texWidth);
 		}
 
 		for (int i = 0; i < width; i++) {
@@ -1064,8 +1079,8 @@ public class ProcesadorImagenes {
 				VertexG2 b = new VertexG2(620, 150, 0.8f, 1, 1, 1, 1, 0);
 				VertexG2 c = new VertexG2(600, 470, 0.6f, 1, 1, 1, 1, 1);
 				VertexG2 d = new VertexG2(160, 440, 0.9f, 1, 1, 1, 0, 1);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, b, c, true, false, true, false);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, c, d, true, false, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a, b, c, true, false, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a, c, d, true, false, true, false);
 			}
 			case 2 -> { // Color
 				g.drawString("COLOR INTERPOLADO", 20, 30);
@@ -1073,8 +1088,8 @@ public class ProcesadorImagenes {
 				VertexG2 b = new VertexG2(620, 150, 0.8f, 0, 1, 0, 1, 0);
 				VertexG2 c = new VertexG2(600, 470, 0.6f, 0, 0, 1, 1, 1);
 				VertexG2 d = new VertexG2(160, 440, 0.9f, 1, 1, 0, 0, 1);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, b, c, false, true, true, false);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, c, d, false, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a, b, c, false, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a, c, d, false, true, true, false);
 			}
 			case 3 -> { // Profundidad
 				g.drawString("INTERPOLACION EN PROFUNDIDAD", 20, 30);
@@ -1085,15 +1100,15 @@ public class ProcesadorImagenes {
 				VertexG2 b1 = new VertexG2(320, 150, 0.5f, 1, 1, 1, 1, 0);
 				VertexG2 c1 = new VertexG2(300, 460, 0.2f, 1, 1, 1, 1, 1);
 				VertexG2 d1 = new VertexG2(80, 430, 0.8f, 1, 1, 1, 0, 1);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a1, b1, c1, true, false, false, false);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a1, c1, d1, true, false, false, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a1, b1, c1, true, false, false, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a1, c1, d1, true, false, false, false);
 
 				VertexG2 a2 = new VertexG2(430, 120, 1.0f, 1, 1, 1, 0, 0);
 				VertexG2 b2 = new VertexG2(720, 150, 0.5f, 1, 1, 1, 1, 0);
 				VertexG2 c2 = new VertexG2(700, 460, 0.2f, 1, 1, 1, 1, 1);
 				VertexG2 d2 = new VertexG2(450, 430, 0.8f, 1, 1, 1, 0, 1);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a2, b2, c2, true, false, true, false);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a2, c2, d2, true, false, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a2, b2, c2, true, false, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a2, c2, d2, true, false, true, false);
 			}
 			case 4 -> { // W-Buffering
 				g.drawString("W-BUFFERING", 20, 30);
@@ -1110,10 +1125,10 @@ public class ProcesadorImagenes {
 				VertexG2 c2 = new VertexG2(330, 500, 0.3f, 0, 1, 1, 1, 1);
 				VertexG2 d2 = new VertexG2(180, 460, 0.3f, 1, 0.5f, 0, 0, 1);
 
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a1, b1, c1, true, true, true, false);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a1, c1, d1, true, true, true, false);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a2, b2, c2, true, true, true, false);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a2, c2, d2, true, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a1, b1, c1, true, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a1, c1, d1, true, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a2, b2, c2, true, true, true, false);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a2, c2, d2, true, true, true, false);
 
 				VertexG2 a3 = new VertexG2(450, 120, 1.0f, 1, 0, 0, 0, 0);
 				VertexG2 b3 = new VertexG2(650, 160, 1.0f, 0, 1, 0, 1, 0);
@@ -1125,10 +1140,10 @@ public class ProcesadorImagenes {
 				VertexG2 c4 = new VertexG2(680, 500, 0.3f, 0, 1, 1, 1, 1);
 				VertexG2 d4 = new VertexG2(530, 460, 0.3f, 1, 0.5f, 0, 0, 1);
 
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a3, b3, c3, true, true, true, true);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a3, c3, d3, true, true, true, true);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a4, b4, c4, true, true, true, true);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a4, c4, d4, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a3, b3, c3, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a3, c3, d3, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a4, b4, c4, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a4, c4, d4, true, true, true, true);
 			}
 			case 5 -> { // Completo
 				g.drawString("COMPLETO", 20, 30);
@@ -1136,11 +1151,114 @@ public class ProcesadorImagenes {
 				VertexG2 b = new VertexG2(620, 150, 0.8f, 0, 1, 0, 1, 0);
 				VertexG2 c = new VertexG2(600, 470, 0.6f, 0, 0, 1, 1, 1);
 				VertexG2 d = new VertexG2(160, 440, 0.9f, 1, 1, 0, 0, 1);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, b, c, true, true, true, true);
-				rasterizarTrianguloG2(canvasPix, width, height, texPix, 256, 256, wBuffer, a, c, d, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a, b, c, true, true, true, true);
+				rasterizarTrianguloG2(canvasPix, width, height, texPix, texWidth, texHeight, wBuffer, a, c, d, true, true, true, true);
 			}
 		}
 		g.dispose();
 		return canvas;
+	}
+
+	// =========================================================================
+	// GRUPO 8: FRAGMENTOS (STENCIL, BLENDING, XOR)
+	// =========================================================================
+
+	public static BufferedImage stencilGrupo8(BufferedImage imagen, int diametroParam) {
+		validar(imagen);
+		int ancho = imagen.getWidth();
+		int alto = imagen.getHeight();
+
+		BufferedImage mascara = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = mascara.createGraphics();
+		g.setColor(Color.BLACK);
+		g.fillRect(0, 0, ancho, alto);
+		g.setColor(Color.WHITE);
+		int diametro = diametroParam;
+		if (diametro <= 0) diametro = Math.min(ancho, alto) / 2;
+		g.fillOval((ancho - diametro) / 2, (alto - diametro) / 2, diametro, diametro);
+		g.dispose();
+
+		int[] pImagen = imagen.getRGB(0, 0, ancho, alto, null, 0, ancho);
+		int[] pMascara = ((java.awt.image.DataBufferInt) mascara.getRaster().getDataBuffer()).getData();
+		
+		BufferedImage salida = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		int[] pSalida = ((java.awt.image.DataBufferInt) salida.getRaster().getDataBuffer()).getData();
+
+		int length = ancho * alto;
+		for (int i = 0; i < length; i++) {
+			int gris = (pMascara[i] >> 16) & 0xFF; // Es blanco o negro, r=g=b
+			if (gris > 128) {
+				pSalida[i] = pImagen[i];
+			} else {
+				pSalida[i] = 0xFF000000; // Negro
+			}
+		}
+		return salida;
+	}
+
+	public static BufferedImage blendingGrupo8(BufferedImage fondo, BufferedImage superior, float alpha) {
+		validar(fondo);
+		validar(superior);
+		int ancho = Math.min(fondo.getWidth(), superior.getWidth());
+		int alto = Math.min(fondo.getHeight(), superior.getHeight());
+		int[] pFondo = fondo.getRGB(0, 0, ancho, alto, null, 0, ancho);
+		int[] pSuperior = superior.getRGB(0, 0, ancho, alto, null, 0, ancho);
+		
+		BufferedImage salida = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		int[] pSalida = ((java.awt.image.DataBufferInt) salida.getRaster().getDataBuffer()).getData();
+
+		int length = ancho * alto;
+		for (int i = 0; i < length; i++) {
+			int p1 = pFondo[i];
+			int p2 = pSuperior[i];
+
+			int r1 = (p1 >> 16) & 0xFF;
+			int g1 = (p1 >> 8) & 0xFF;
+			int b1 = p1 & 0xFF;
+
+			int r2 = (p2 >> 16) & 0xFF;
+			int g2 = (p2 >> 8) & 0xFF;
+			int b2 = p2 & 0xFF;
+
+			int r = (int) (r2 * alpha + r1 * (1 - alpha));
+			int g = (int) (g2 * alpha + g1 * (1 - alpha));
+			int b = (int) (b2 * alpha + b1 * (1 - alpha));
+
+			pSalida[i] = (r << 16) | (g << 8) | b;
+		}
+		return salida;
+	}
+
+	public static BufferedImage xorGrupo8(BufferedImage img1, BufferedImage img2) {
+		validar(img1);
+		validar(img2);
+		int ancho = Math.min(img1.getWidth(), img2.getWidth());
+		int alto = Math.min(img1.getHeight(), img2.getHeight());
+		int[] pImg1 = img1.getRGB(0, 0, ancho, alto, null, 0, ancho);
+		int[] pImg2 = img2.getRGB(0, 0, ancho, alto, null, 0, ancho);
+		
+		BufferedImage salida = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+		int[] pSalida = ((java.awt.image.DataBufferInt) salida.getRaster().getDataBuffer()).getData();
+
+		int length = ancho * alto;
+		for (int i = 0; i < length; i++) {
+			int p1 = pImg1[i];
+			int p2 = pImg2[i];
+
+			int r1 = (p1 >> 16) & 0xFF;
+			int g1 = (p1 >> 8) & 0xFF;
+			int b1 = p1 & 0xFF;
+
+			int r2 = (p2 >> 16) & 0xFF;
+			int g2 = (p2 >> 8) & 0xFF;
+			int b2 = p2 & 0xFF;
+
+			int r = r1 ^ r2;
+			int g = g1 ^ g2;
+			int b = b1 ^ b2;
+
+			pSalida[i] = (r << 16) | (g << 8) | b;
+		}
+		return salida;
 	}
 }
