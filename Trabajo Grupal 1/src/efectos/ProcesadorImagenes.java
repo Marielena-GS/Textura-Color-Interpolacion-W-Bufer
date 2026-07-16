@@ -492,7 +492,6 @@ public class ProcesadorImagenes {
 		for (int y = 0; y < alto; y++) {
 			for (int x = 0; x < ancho; x++) {
 				int pixel = img.getRGB(x, y);
-				int a = (pixel >> 24) & 0xFF;
 				int r = (pixel >> 16) & 0xFF;
 				int g = (pixel >> 8) & 0xFF;
 				int b = (pixel >> 0) & 0xFF;

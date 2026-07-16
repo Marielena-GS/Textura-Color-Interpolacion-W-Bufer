@@ -9,10 +9,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -91,6 +87,7 @@ public class VentanaPrincipal extends JFrame {
         setMinimumSize(new Dimension(960, 620));
         setLocationRelativeTo(null);
         setUndecorated(true);
+        setExtendedState(MAXIMIZED_BOTH); // Iniciar maximizado
         getContentPane().setBackground(C_FONDO);
         construirUI();
     }
@@ -101,6 +98,72 @@ public class VentanaPrincipal extends JFrame {
         add(crearCuerpo(), BorderLayout.CENTER);
         add(crearBarraEstado(), BorderLayout.SOUTH);
         actualizarEstado("listo", "Listo. Carga una imagen o genera una nueva.");
+        configurarAtajosTeclado();
+        configurarDragAndDrop();
+    }
+
+    private void configurarAtajosTeclado() {
+        JRootPane root = getRootPane();
+        InputMap inputMap = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = root.getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("control O"), "cargar");
+        actionMap.put("cargar", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cargarImagen();
+            }
+        });
+
+        inputMap.put(KeyStroke.getKeyStroke("control S"), "guardar");
+        actionMap.put("guardar", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                guardarResultado();
+            }
+        });
+
+        inputMap.put(KeyStroke.getKeyStroke("ENTER"), "aplicar");
+        actionMap.put("aplicar", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(btnAplicar != null && btnAplicar.isEnabled()) {
+                    btnAplicar.doClick();
+                }
+            }
+        });
+    }
+
+    private void configurarDragAndDrop() {
+        TransferHandler th = new TransferHandler() {
+            @Override
+            public boolean canImport(TransferSupport support) {
+                return support.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.javaFileListFlavor);
+            }
+            @Override
+            @SuppressWarnings("unchecked")
+            public boolean importData(TransferSupport support) {
+                try {
+                    java.util.List<File> files = (java.util.List<File>) support.getTransferable().getTransferData(java.awt.datatransfer.DataFlavor.javaFileListFlavor);
+                    if (!files.isEmpty()) {
+                        File f = files.get(0);
+                        BufferedImage img = ImageIO.read(f);
+                        if (img != null) {
+                            imagenOriginal = img;
+                            panelOriginal.setImagen(imagenOriginal);
+                            btnAplicar.setEnabled(true);
+                            btnGuardar.setEnabled(false);
+                            actualizarEstado("listo", "Imagen cargada desde arrastre: " + f.getName());
+                            return true;
+                        }
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(VentanaPrincipal.this, "Error al cargar imagen arrastrada", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                return false;
+            }
+        };
+        setTransferHandler(th);
     }
 
     /** Barra de título personalizada que reemplaza la nativa de Windows. */
@@ -149,10 +212,23 @@ public class VentanaPrincipal extends JFrame {
             public void mousePressed(MouseEvent e) {
                 puntoArrastre = e.getPoint();
             }
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    if (getExtendedState() == MAXIMIZED_BOTH) {
+                        setExtendedState(NORMAL);
+                    } else {
+                        setExtendedState(MAXIMIZED_BOTH);
+                    }
+                }
+            }
         });
         filaTitulo.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
+                if (getExtendedState() == MAXIMIZED_BOTH) {
+                    return; // No permitir arrastrar si está maximizada
+                }
                 Point loc = getLocation();
                 setLocation(loc.x + e.getX() - puntoArrastre.x,
                         loc.y + e.getY() - puntoArrastre.y);
@@ -194,9 +270,11 @@ public class VentanaPrincipal extends JFrame {
         JPanel derecha = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         derecha.setOpaque(false);
 
-        // [MEJORA 5] Botones con iconos Unicode reales en vez de espacios vacíos
+        // [MEJORA 5] Botones
         JButton btnCargar = crearBoton("Cargar Imagen", C_ACENTO);
+        btnCargar.setToolTipText("Cargar imagen desde el equipo (Ctrl + O)");
         btnGuardar = crearBoton("Guardar Resultado", C_EXITO);
+        btnGuardar.setToolTipText("Guardar la imagen procesada (Ctrl + S)");
         JButton btnLimpiar = crearBoton("Limpiar", C_PELIGRO);
 
         btnGuardar.setEnabled(false);
@@ -394,6 +472,8 @@ public class VentanaPrincipal extends JFrame {
         });
 
         JScrollPane scroll = new JScrollPane(listaFiltros);
+        scroll.getVerticalScrollBar().setUI(new CustomScrollBarUI());
+        scroll.getHorizontalScrollBar().setUI(new CustomScrollBarUI());
         scroll.setBorder(null);
         scroll.getViewport().setBackground(C_CARD);
         return scroll;
@@ -474,6 +554,7 @@ public class VentanaPrincipal extends JFrame {
         comboBlendingModo.addActionListener(e -> actualizarEstadoControlesBlending());
 
         btnAplicar = crearBoton("Aplicar Filtro", C_ACENTO);
+        btnAplicar.setToolTipText("Procesar imagen con el filtro seleccionado (Enter)");
         btnAplicar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
         btnAplicar.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnAplicar.addActionListener(e -> aplicarFiltro());
@@ -1229,10 +1310,10 @@ public class VentanaPrincipal extends JFrame {
                 }
 
                 ImageIO.write(imgGuardar, formato, archivo);
-
+                JOptionPane.showMessageDialog(this, "Imagen guardada con éxito.", "Guardar", JOptionPane.INFORMATION_MESSAGE);
                 actualizarEstado("exito", "Imagen guardada como " + formato.toUpperCase());
             } catch (Exception e) {
-                mostrarError("Error al guardar: " + e.getMessage());
+                JOptionPane.showMessageDialog(this, "Error al guardar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -2596,42 +2677,43 @@ public class VentanaPrincipal extends JFrame {
         dialog.setVisible(true);
     }
 
-    private JScrollPane crearVisorCodigo(String codigo) {
-        JTextArea area = new JTextArea(codigo);
-        area.setEditable(false);
-        area.setFont(new Font("Consolas", Font.PLAIN, 13));
-        area.setBackground(new Color(12, 14, 22));
-        area.setForeground(C_TEXTO);
-        area.setCaretColor(C_TEXTO);
-        area.setLineWrap(false);
-        area.setWrapStyleWord(false);
-        area.setTabSize(4);
-
-        JScrollPane scroll = new JScrollPane(area);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.getViewport().setBackground(new Color(12, 14, 22));
-        return scroll;
-    }
-
-    private String leerCodigoGrupo1(String archivo) {
-        for (Path ruta : rutasGrupo1(archivo)) {
-            if (Files.exists(ruta)) {
-                try {
-                    return Files.readString(ruta, StandardCharsets.UTF_8);
-                } catch (Exception e) {
-                    return "No se pudo leer el archivo: " + ruta + "\n" + e.getMessage();
-                }
-            }
+    class CustomScrollBarUI extends javax.swing.plaf.basic.BasicScrollBarUI {
+        @Override
+        protected void configureScrollBarColors() {
+            this.thumbColor = new Color(70, 80, 115);
+            this.trackColor = new Color(22, 25, 38);
         }
-        return "No se encontró el archivo: " + archivo + "\n" +
-                "Se buscaron las rutas esperadas dentro del proyecto.";
-    }
-
-    private Path[] rutasGrupo1(String archivo) {
-        return new Path[] {
-                Paths.get("Trabajo Grupal 1", "src", "efectos", "exposiciones", "grupo1", archivo),
-                Paths.get("src", "efectos", "exposiciones", "grupo1", archivo),
-                Paths.get("efectos", "exposiciones", "grupo1", archivo)
-        };
+        @Override
+        protected JButton createDecreaseButton(int orientation) {
+            return createZeroButton();
+        }
+        @Override
+        protected JButton createIncreaseButton(int orientation) {
+            return createZeroButton();
+        }
+        private JButton createZeroButton() {
+            JButton button = new JButton();
+            Dimension zeroDim = new Dimension(0, 0);
+            button.setPreferredSize(zeroDim);
+            button.setMinimumSize(zeroDim);
+            button.setMaximumSize(zeroDim);
+            return button;
+        }
+        @Override
+        protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+            if (thumbBounds.isEmpty() || !scrollbar.isEnabled()) {
+                return;
+            }
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(isDragging ? thumbColor.brighter() : thumbColor);
+            g2.fillRoundRect(thumbBounds.x + 2, thumbBounds.y + 2, thumbBounds.width - 4, thumbBounds.height - 4, 8, 8);
+            g2.dispose();
+        }
+        @Override
+        protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
+            g.setColor(trackColor);
+            g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
+        }
     }
 }

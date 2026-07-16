@@ -6,6 +6,9 @@
   <img src="https://img.shields.io/badge/OpenGL-5586A4?style=for-the-badge&logo=opengl&logoColor=white" />
   <img src="https://img.shields.io/badge/LWJGL3-Black?style=for-the-badge&logo=java&logoColor=white" />
   <img src="https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white" />
+  
+  <br><br>
+  <img src="assets/captura.jpg" alt="ImaGen Studio UI Screenshot" width="100%">
 </div>
 
 ---
