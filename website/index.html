@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImaGen Studio | Procesamiento Gráfico Avanzado</title>
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Indicador de Progreso de Scroll (Norman: Visibilidad del estado del sistema) -->
+    <div id="scrollProgress" class="scroll-progress"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="assets/icon.png" alt="ImaGen Studio Logo" style="height: 28px; margin-right: 12px; filter: drop-shadow(0 0 5px var(--accent));">
+            ImaGen<span>Studio</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#hero">Inicio</a></li>
+            <li><a href="#theory">Teoría</a></li>
+            <li><a href="#showcase">Showcase</a></li>
+            <li><a href="#retos">Retos 🎁</a></li>
+            <li><a href="#" id="btnEjecutar" class="btn-primary">🚀 Ejecutar Motor</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="hero" class="hero-section">
+        <div class="hero-content">
+            <h1 class="animate-up">Renderizado <br><span class="text-gradient">Llevado al Límite</span></h1>
+            <p class="animate-up delay-1">Un motor de procesamiento de imágenes y aceleración 3D construido con Java Swing y OpenGL (LWJGL 3).</p>
+            <div class="team-info animate-up delay-2">
+                <div class="university-badge">
+                    <img src="assets/Logo UCE.png" alt="Escudo UCE" class="uce-logo">
+                    <div class="uni-text">
+                        <strong>Universidad Central del Ecuador</strong>
+                        <span>Asignatura: Taller II</span>
+                    </div>
+                </div>
+                
+                <div class="team-details" style="flex-direction: column; gap: 0.5rem; align-items: flex-start;">
+                    <div class="team-badge" style="font-size: 0.95rem;"><strong>Desarrolladores:</strong> Diego Borja, Marielena Gonzalez, Mateo Jami</div>
+                    <div class="team-badge" style="font-size: 0.95rem;"><strong>Docente:</strong> Ing. Wladimir Carrillo</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-image animate-up delay-3">
+            <img src="assets/captura.jpg" alt="ImaGen Studio UI">
+            <div class="glow-effect"></div>
+        </div>
+    </header>
+
+    <!-- Tech Stack Banner -->
+    <section class="tech-stack-banner">
+        <div class="tech-stack-container">
+            <p class="tech-title">POWERED BY</p>
+            <div class="tech-logos">
+                <div class="tech-item">☕ Java 17</div>
+                <div class="tech-item">🧊 OpenGL</div>
+                <div class="tech-item">⚙️ LWJGL 3</div>
+                <div class="tech-item">🎨 Java Swing</div>
+                <div class="tech-item">🪶 Apache Maven</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Teoría y Arquitectura Section -->
+    <section id="theory" class="theory-section">
+        <h2 class="section-title">Arquitectura y <span class="text-gradient">Características</span></h2>
+        
+        <!-- Bloque 1: CPU -->
+        <div class="feature-block">
+            <h3 class="block-title">🖥️ Procesamiento Digital (CPU)</h3>
+            <div class="cards-grid">
+                <div class="theory-card">
+                    <div class="icon">🖼️</div>
+                    <h4>Rasterización & Mapeo (Grupo 2)</h4>
+                    <p>Aplicación de texturas sobre polígonos generados dinámicamente mediante acceso directo a memoria (DataBufferInt). Implementación de comparativas "Split-Screen" nativas.</p>
+                </div>
+                <div class="theory-card">
+                    <div class="icon">⭕</div>
+                    <h4>Efecto Stencil Interactivo (Grupo 8)</h4>
+                    <p>Recorte circular sobre imágenes en tiempo real. Máscara estática con radio ajustable de forma asíncrona mediante controles de deslizamiento fluídos.</p>
+                </div>
+                <div class="theory-card">
+                    <div class="icon">🔀</div>
+                    <h4>XOR & Blending (Grupo 8)</h4>
+                    <p>Operaciones lógicas a nivel de bit (XOR) entre múltiples canales de color e interpolación dinámica (Blending) para transiciones de opacidad y suavizado de bordes.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque 2: GPU -->
+        <div class="feature-block" style="margin-top: 5rem;">
+            <h3 class="block-title">🚀 Renderizado 3D Hardware (GPU)</h3>
+            <div class="cards-grid">
+                <div class="theory-card">
+                    <div class="icon">🎮</div>
+                    <h4>Motor Nativo LWJGL 3 (Grupo 3)</h4>
+                    <p>Contexto OpenGL asilado creado con GLFW. Se ejecuta en paralelo sin bloquear la interfaz Swing de Java, ofreciendo renderizado de alto rendimiento.</p>
+                </div>
+                <div class="theory-card">
+                    <div class="icon">📐</div>
+                    <h4>Interpolación Baricéntrica (Shaders)</h4>
+                    <p>Uso de GLSL (Vertex & Fragment shaders) para calcular gradientes de color suaves en triángulos tridimensionales aprovechando los pipelines de la GPU.</p>
+                </div>
+                <div class="theory-card">
+                    <div class="icon">👁️</div>
+                    <h4>Z-Buffer & HUD</h4>
+                    <p>Prevención de anomalías visuales superando el Algoritmo del Pintor mediante validación de profundidad (Z-Buffer). HUD nativo inyectado con telemetría en tiempo real.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Catálogo de Filtros (NUEVO) -->
+    <section class="theory-section" style="padding-top: 0;">
+        <h2 class="section-title">Catálogo Completo de <span class="text-gradient">Procesamiento</span></h2>
+        <p class="section-subtitle" style="margin-top: -2rem; margin-bottom: 3rem; text-align: center; color: var(--text-dim);">Más de 24 algoritmos nativos disponibles para prueba en tiempo real durante la ejecución.</p>
+        
+        <div class="filter-catalog">
+            <div class="catalog-column">
+                <h4 style="color: var(--accent); margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">🎨 Color & Espectro</h4>
+                <ul class="filter-list">
+                    <li class="filter-item" data-id="byn">Blanco y Negro (Umbral)</li>
+                    <li class="filter-item" data-id="grises">Escala de Grises (Estándar & HSV)</li>
+                    <li class="filter-item" data-id="retro">Efectos Retro 1 y 2</li>
+                    <li class="filter-item" data-id="negativo">Filtro Negativo</li>
+                    <li class="filter-item" data-id="histograma">Histograma Analítico RGB</li>
+                    <li class="filter-item" data-id="blending">Blending / Mezcla Activa</li>
+                </ul>
+            </div>
+            <div class="catalog-column">
+                <h4 style="color: var(--accent); margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">⚙️ Convolución & HSV</h4>
+                <ul class="filter-list">
+                    <li class="filter-item" data-id="convolucion">Convolución Manual & Operativa</li>
+                    <li class="filter-item" data-id="amanecer">Filtro "Amanecer ×10" (Matricial)</li>
+                    <li class="filter-item" data-id="hsv_dinamico">Procesamiento HSV Dinámico</li>
+                    <li class="filter-item" data-id="saturacion">Saturación Controlada</li>
+                    <li class="filter-item" data-id="brillo">Alteración de Brillo por Canal</li>
+                    <li class="filter-item" data-id="alpha">Manipulación de Canal Alpha</li>
+                </ul>
+            </div>
+            <div class="catalog-column">
+                <h4 style="color: var(--accent); margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">✨ Especiales</h4>
+                <ul class="filter-list">
+                    <li class="filter-item" data-id="stencil">Desvanecimiento Circular (Stencil)</li>
+                    <li class="filter-item" data-id="vidrio">Vidrio Esmerilado (Desenfoque)</li>
+                    <li class="filter-item" data-id="recorte">Recorte de Bits (Data Masking)</li>
+                    <li class="filter-item" data-id="aleatorio">Generación de Imagen Aleatoria</li>
+                    <li class="filter-item" data-id="copiar">Copiar Superficie de Imagen</li>
+                </ul>
+            </div>
+            <div class="catalog-column">
+                <h4 style="color: var(--accent); margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">🌈 Degradados</h4>
+                <ul class="filter-list">
+                    <li class="filter-item" data-id="deg_horizontal">Degradado Horizontal Lineal</li>
+                    <li class="filter-item" data-id="deg_vertical">Degradado Vertical Lineal</li>
+                    <li class="filter-item" data-id="deg_radial">Degradado Radial Estándar</li>
+                    <li class="filter-item" data-id="deg_suavizado">Gradiente Radial Suavizado</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Showcase Section (Before/After Slider) -->
+    <section id="showcase" class="showcase-section">
+        <h2 class="section-title">Showcase de <span class="text-gradient">Filtros</span></h2>
+        <p class="section-subtitle">Interactúa con el deslizador para comparar el efecto de procesamiento digital en tiempo real.</p>
+        
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <label for="webFilterSelect" style="color: var(--text-dim); margin-right: 1rem; font-weight: 600;">Probar Filtro Web:</label>
+            <select id="webFilterSelect" style="padding: 0.5rem 1rem; background: var(--bg-panel); color: var(--accent); border: 1px solid var(--glass-border); border-radius: 8px; font-size: 1rem; cursor: pointer; outline: none;">
+                <option value="amanecer">1. Amanecer ×10 (Convolución Matricial)</option>
+                <option value="retro">2. Efecto Retro 1 (Color Mapping)</option>
+                <option value="negativo">3. Filtro Negativo (Inversión XOR)</option>
+                <option value="blur">4. Vidrio Esmerilado (Desenfoque Espacial)</option>
+                <option value="hsv">5. Sobresaturación HSV (Espacio de Color)</option>
+            </select>
+        </div>
+
+        <div class="slider-container">
+            <!-- Antes (Original) -->
+            <div class="img-original">
+                <img src="assets/image2.jpg" alt="Original">
+                <span class="label">Original</span>
+            </div>
+            <!-- Después (Filtro) -->
+            <div class="img-filtered" id="filteredView">
+                <img src="assets/image2.jpg" alt="Filtrada">
+                <span class="label" id="filterLabel">Filtro Amanecer</span>
+            </div>
+            <!-- Slider handle -->
+            <input type="range" min="0" max="100" value="50" class="slider" id="compareSlider">
+            <div class="slider-line" id="sliderLine">
+                <div class="slider-button">
+                    <svg viewBox="0 0 24 24" width="24" height="24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41zM8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="white"/></svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Win Overlay -->
+    <div id="winOverlay">
+        <div style="font-size: 6rem; animation: bounce 1s infinite;">🏆</div>
+        <div>¡RETO COMPLETADO!</div>
+        <div style="font-size: 1.5rem; color: #fff; margin-top: 1rem; font-weight: normal; text-shadow: none;">¡Has ganado el premio del Grupo 2!</div>
+        <button onclick="document.getElementById('winOverlay').classList.remove('active')" class="btn-primary" style="margin-top:2rem; font-size:1rem; pointer-events:auto;">Reclamar Premio</button>
+    </div>
+
+    <!-- Retos Section -->
+    <section id="retos" class="theory-section" style="background: var(--bg-panel);">
+        <h2 class="section-title">Retos de <span class="text-gradient">ImaGenStudio</span> 🎁</h2>
+        <p class="section-subtitle" style="margin-top: -2rem; margin-bottom: 3rem; text-align: center; color: var(--text-dim);">Demuestra tu atención durante la exposición. ¡Responde correctamente y gana un premio sorpresa del Grupo 2!</p>
+        
+        <div class="cards-grid">
+            <!-- Reto 1 -->
+            <div class="theory-card challenge-card" id="reto1">
+                <div class="icon" style="color: #27c93f; text-shadow: 0 0 10px rgba(39, 201, 63, 0.5);">🟢</div>
+                <h4>Reto Nivel: Fácil</h4>
+                <div class="challenge-content">
+                    <p class="challenge-q">En el espacio de color RGB, si los valores de los 3 canales de un píxel son <strong>(0, 0, 0)</strong>, ¿qué color estamos viendo en pantalla?</p>
+                    <p class="challenge-a" style="display: none; color: #27c93f; font-weight: bold; margin-top: 1rem;">¡Negro Puro! (Ausencia total de luz).</p>
+                </div>
+                <button class="btn-primary challenge-btn" onclick="window.unlockNext(2, this)" style="margin-top: 1.5rem; padding: 0.5rem 1.2rem; font-size: 0.9rem;">Revelar y Desbloquear Nivel 2</button>
+            </div>
+            
+            <!-- Reto 2 -->
+            <div class="theory-card challenge-card locked" id="reto2">
+                <div class="icon" style="color: #ffbd2e; text-shadow: 0 0 10px rgba(255, 189, 46, 0.5);">🟡</div>
+                <h4>Reto Nivel: Medio <span class="lock-icon">🔒</span></h4>
+                <div class="challenge-content">
+                    <p class="challenge-q">Para crear un filtro de <strong>Escala de Grises</strong> realista, no dividimos los colores en partes iguales. ¿Qué canal de color (R, G, o B) recibe el mayor peso matemático porque el ojo humano es más sensible a él?</p>
+                    <p class="challenge-a" style="display: none; color: #ffbd2e; font-weight: bold; margin-top: 1rem;">¡El Canal Verde (Green)!</p>
+                </div>
+                <button class="btn-primary challenge-btn" onclick="window.unlockNext(3, this)" style="margin-top: 1.5rem; padding: 0.5rem 1.2rem; font-size: 0.9rem;">Revelar y Desbloquear Jefe Final</button>
+            </div>
+
+            <!-- Reto 3 -->
+            <div class="theory-card challenge-card locked" id="reto3">
+                <div class="icon" style="color: #ff5f56; text-shadow: 0 0 10px rgba(255, 95, 86, 0.5);">🔴</div>
+                <h4>Reto Nivel: Difícil (Jefe) <span class="lock-icon">🔒</span></h4>
+                <div class="challenge-content">
+                    <p class="challenge-q">Nuestro motor empaqueta el color de cada píxel usando 8 bits por cada canal (Red, Green, Blue). Gracias a esta arquitectura de 24-bits de color puro en Java, ¿cuántos colores únicos exactos es capaz de renderizar ImaGen Studio?</p>
+                    
+                    <div class="options-container" style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.5rem;">
+                        <button class="option-btn" onclick="window.checkFinalAnswer(this, false)">A) 256 colores únicos.</button>
+                        <button class="option-btn" onclick="window.checkFinalAnswer(this, true)">B) ~16.7 Millones de colores.</button>
+                        <button class="option-btn" onclick="window.checkFinalAnswer(this, false)">C) Infinitos colores.</button>
+                    </div>
+                    <p class="challenge-a" style="display: none; color: #ff5f56; font-weight: bold; margin-top: 1rem;">¡Correcto, opción B!<br><span style="font-size: 0.85rem; color: var(--text-dim); font-weight: normal;">(Cada canal RGB tiene 256 valores posibles. Matemáticamente es 256 × 256 × 256 = 16.777.216 combinaciones exactas).</span></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cheatsheet de Atajos -->
+    <section class="shortcuts-section">
+        <div class="shortcuts-container">
+            <h2 class="section-title" style="margin-bottom: 2rem;">Orientado a <span class="text-gradient">Power Users</span></h2>
+            <p class="section-subtitle">ImaGen Studio está diseñado para un flujo de trabajo ininterrumpido mediante atajos de teclado y hardware nativo.</p>
+            
+            <div class="shortcuts-grid">
+                <div class="shortcut-item">
+                    <kbd>Ctrl</kbd> + <kbd>O</kbd>
+                    <span>Cargar Imagen Base</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>Ctrl</kbd> + <kbd>S</kbd>
+                    <span>Guardar Renderizado</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>Enter</kbd>
+                    <span>Aplicar Filtro Rápido</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>Z</kbd>
+                    <span>Alternar Z-Buffer (Motor 3D)</span>
+                </div>
+                <div class="shortcut-item">
+                    <kbd>Esc</kbd>
+                    <span>Cerrar Contexto OpenGL</span>
+                </div>
+                <div class="shortcut-item">
+                    <div class="mouse-icon">🖱️</div>
+                    <span>Drag & Drop Nativo (Arrastrar imágenes)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Terminal Mockup Overlay -->
+    <div id="terminalOverlay" class="terminal-overlay">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="term-btn red"></div>
+                <div class="term-btn yellow"></div>
+                <div class="term-btn green"></div>
+                <span class="term-title">bash — imagen-studio</span>
+            </div>
+            <div class="terminal-body" id="terminalBody"></div>
+        </div>
+    </div>
+
+    <!-- Info Modal para Definiciones -->
+    <div id="infoModal" class="terminal-overlay">
+        <div class="glass-card info-modal-content" style="max-width: 500px; text-align: left; padding: 2.5rem; position: relative;">
+            <button id="closeInfoModal" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-dim); font-size: 1.5rem; cursor: pointer;">&times;</button>
+            <h3 id="infoModalTitle" style="color: var(--accent); margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Título del Filtro</h3>
+            <p id="infoModalDesc" style="color: var(--text-main); line-height: 1.6; font-size: 1.05rem;">Definición algorítmica...</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 3rem; border-top: 1px solid var(--glass-border); margin-top: 4rem;">
+        <img src="assets/icon.png" alt="ImaGen Studio" style="height: 40px; margin-bottom: 1rem; opacity: 0.7;">
+        <p style="color: var(--text-dim);">ImaGen Studio © 2026 - Universidad Central del Ecuador</p>
+        <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.5rem;">Desarrollado por el Grupo 2 para la asignatura de Taller II.</p>
+    </footer>
+
+    <!-- Botón Volver Arriba -->
+    <button id="scrollTopBtn" class="scroll-top-btn" title="Volver al inicio">↑</button>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -82,6 +82,11 @@ public class VentanaPrincipal extends JFrame {
 
     public VentanaPrincipal() {
         super("ImageGen Studio — UCE");
+        try {
+            File iconFile = new File("../assets/icon.png");
+            if (!iconFile.exists()) iconFile = new File("assets/icon.png");
+            setIconImage(ImageIO.read(iconFile));
+        } catch (Exception e) { /* Ignorar si no se encuentra */ }
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(1280, 780);
         setMinimumSize(new Dimension(960, 620));
@@ -180,6 +185,13 @@ public class VentanaPrincipal extends JFrame {
         JLabel lblTitulo = new JLabel("ImaGen Studio — UCE");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblTitulo.setForeground(Color.WHITE);
+        try {
+            File iconFile = new File("../assets/icon.png");
+            if (!iconFile.exists()) iconFile = new File("assets/icon.png");
+            Image img = ImageIO.read(iconFile).getScaledInstance(16, 16, Image.SCALE_SMOOTH);
+            lblTitulo.setIcon(new ImageIcon(img));
+            lblTitulo.setIconTextGap(8);
+        } catch (Exception e) {}
 
         // Botones de ventana dibujados con Graphics2D (sin texto, sin encoding)
         JPanel controles = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
