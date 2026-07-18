@@ -398,6 +398,14 @@ public class VentanaPrincipal extends JFrame {
         card.add(btnGrupo8);
         card.add(Box.createVerticalStrut(6));
         card.add(btnGrupo9);
+        JButton btnEcualizador = crearBoton("Ecualizador e Histograma", C_ACENTO2);
+        btnEcualizador.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnEcualizador.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        btnEcualizador.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnEcualizador.addActionListener(e -> mostrarDialogoEcualizador());
+
+        card.add(Box.createVerticalStrut(6));
+        card.add(btnEcualizador);
         return card;
     }
 
@@ -3021,6 +3029,230 @@ public class VentanaPrincipal extends JFrame {
         dialog.setVisible(true);
     }
 
+    private void mostrarDialogoEcualizador() {
+        JDialog dialog = new JDialog(this, "Ecualizador e Histograma", true);
+        dialog.setSize(1280, 780);
+        dialog.setMinimumSize(new Dimension(960, 620));
+        dialog.setUndecorated(true);
+        dialog.setLocationRelativeTo(this);
+        dialog.getContentPane().setBackground(C_FONDO);
+        dialog.setLayout(new BorderLayout());
+
+        JPanel barra = new JPanel(new BorderLayout(0, 0));
+        barra.setBackground(C_PANEL);
+        barra.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        JPanel filaTitulo = new JPanel(new BorderLayout());
+        filaTitulo.setBackground(C_ACENTO.darker().darker());
+        filaTitulo.setBorder(new EmptyBorder(6, 12, 6, 8));
+
+        JLabel lblTitulo = new JLabel("ImaGen Studio - Ecualizador e Histograma");
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTitulo.setForeground(Color.WHITE);
+
+        JPanel controlesTitulo = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        controlesTitulo.setBackground(C_ACENTO.darker().darker());
+        controlesTitulo.setOpaque(true);
+
+        JButton btnClose = crearBotonVentanaIcono("close");
+        btnClose.addActionListener(e -> dialog.dispose());
+        controlesTitulo.add(btnClose);
+
+        filaTitulo.add(lblTitulo, BorderLayout.WEST);
+        filaTitulo.add(controlesTitulo, BorderLayout.EAST);
+
+        final Point[] dragPoint = new Point[1];
+        filaTitulo.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) { dragPoint[0] = e.getPoint(); }
+        });
+        filaTitulo.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                Point loc = dialog.getLocation();
+                dialog.setLocation(loc.x + e.getX() - dragPoint[0].x, loc.y + e.getY() - dragPoint[0].y);
+            }
+        });
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(C_PANEL);
+        header.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(0, 0, 1, 0, C_BORDE),
+                new EmptyBorder(10, 18, 10, 18)));
+
+        JLabel lblH = new JLabel("🎨 ImaGen Studio");
+        lblH.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblH.setForeground(C_ACENTO2);
+
+        JLabel lblSub = new JLabel("  Ajuste de Brillo y Ecualización de Histograma");
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblSub.setForeground(C_TEXTO_DIM);
+
+        JPanel izq = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        izq.setOpaque(false);
+        izq.add(lblH);
+        izq.add(lblSub);
+        
+        header.add(izq, BorderLayout.WEST);
+
+        barra.add(filaTitulo, BorderLayout.NORTH);
+        barra.add(header, BorderLayout.CENTER);
+        dialog.add(barra, BorderLayout.NORTH);
+
+        JPanel centerPanel = new JPanel(new GridLayout(1, 3, 10, 0));
+        centerPanel.setBackground(C_FONDO);
+        centerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        ImagePanel panelImgOrig = new ImagePanel("Imagen Original");
+        ImagePanel panelImgProc = new ImagePanel("Imagen Procesada");
+        ImagePanel panelHist = new ImagePanel("Histograma");
+
+        centerPanel.add(panelImgOrig);
+        centerPanel.add(panelImgProc);
+        centerPanel.add(panelHist);
+        
+        dialog.add(centerPanel, BorderLayout.CENTER);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
+        bottomPanel.setBackground(C_PANEL);
+        bottomPanel.setBorder(new EmptyBorder(10, 15, 15, 15));
+
+        JPanel controles = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
+        controles.setOpaque(false);
+
+        JButton btnImg = crearBoton("Cargar Imagen", C_ACENTO);
+        JButton btnGuardar = crearBoton("Guardar Resultado", C_EXITO);
+        btnGuardar.setEnabled(false);
+
+        JSlider sliderBrillo = new JSlider(-255, 255, 0);
+        sliderBrillo.setMajorTickSpacing(50);
+        sliderBrillo.setPaintTicks(true);
+        sliderBrillo.setPaintLabels(true);
+        sliderBrillo.setEnabled(false);
+        sliderBrillo.setPreferredSize(new Dimension(300, 45));
+        sliderBrillo.setOpaque(false);
+        sliderBrillo.setForeground(C_TEXTO);
+
+        sliderBrillo.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && sliderBrillo.isEnabled()) {
+                    sliderBrillo.setValue(0);
+                }
+            }
+        });
+
+        JCheckBox chkGrayscale = new JCheckBox("Escala de Grises");
+        chkGrayscale.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        chkGrayscale.setForeground(C_TEXTO);
+        chkGrayscale.setOpaque(false);
+        chkGrayscale.setEnabled(false);
+
+        JCheckBox chkCDF = new JCheckBox("Ecualizar CDF");
+        chkCDF.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        chkCDF.setForeground(C_TEXTO);
+        chkCDF.setOpaque(false);
+        chkCDF.setEnabled(false);
+        
+        controles.add(btnImg);
+        controles.add(new JLabel("Brillo:"));
+        controles.add(sliderBrillo);
+        controles.add(chkGrayscale);
+        controles.add(chkCDF);
+
+        JPanel rightControls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        rightControls.setOpaque(false);
+        rightControls.add(btnGuardar);
+
+        bottomPanel.add(controles, BorderLayout.CENTER);
+        bottomPanel.add(rightControls, BorderLayout.EAST);
+        
+        dialog.add(bottomPanel, BorderLayout.SOUTH);
+
+        final BufferedImage[] imgBase = new BufferedImage[1];
+        final BufferedImage[] imgResult = new BufferedImage[1];
+
+        Runnable actualizarImagen = () -> {
+            if (imgBase[0] == null) return;
+            boolean cdf = chkCDF.isSelected();
+            boolean gray = chkGrayscale.isSelected();
+            sliderBrillo.setEnabled(!cdf);
+
+            if (cdf) {
+                imgResult[0] = efectos.ProcesadorImagenes.ecualizarCDF(imgBase[0], gray);
+            } else {
+                int brillo = sliderBrillo.getValue();
+                imgResult[0] = efectos.ProcesadorImagenes.ajustarBrillo(imgBase[0], brillo, gray);
+            }
+            panelImgProc.setImagen(imgResult[0]);
+            
+            BufferedImage histImg = efectos.ProcesadorImagenes.generarGraficoHistograma(imgResult[0], gray);
+            panelHist.setImagen(histImg);
+            
+            btnGuardar.setEnabled(true);
+        };
+
+        btnImg.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser(ultimoDirectorioCarga != null && ultimoDirectorioCarga.exists() ? ultimoDirectorioCarga : new File(System.getProperty("user.home")));
+            fc.setDialogTitle("Seleccionar imagen");
+            if (fc.showOpenDialog(dialog) == JFileChooser.APPROVE_OPTION) {
+                File f = fc.getSelectedFile();
+                ultimoDirectorioCarga = f.getParentFile();
+                try {
+                    imgBase[0] = javax.imageio.ImageIO.read(f);
+                    panelImgOrig.setImagen(imgBase[0]);
+                    chkGrayscale.setEnabled(true);
+                    chkCDF.setEnabled(true);
+                    sliderBrillo.setEnabled(!chkCDF.isSelected());
+                    actualizarImagen.run();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        sliderBrillo.addChangeListener(e -> {
+            if (!sliderBrillo.getValueIsAdjusting()) {
+                actualizarImagen.run();
+            }
+        });
+        chkGrayscale.addActionListener(e -> actualizarImagen.run());
+        chkCDF.addActionListener(e -> actualizarImagen.run());
+
+        btnGuardar.addActionListener(e -> {
+            if (imgResult[0] == null) return;
+            JFileChooser chooser = new JFileChooser(ultimoDirectorioCarga != null && ultimoDirectorioCarga.exists() ? ultimoDirectorioCarga : new File(System.getProperty("user.home")));
+            chooser.setDialogTitle("Guardar imagen");
+            if (chooser.showSaveDialog(dialog) == JFileChooser.APPROVE_OPTION) {
+                File archivo = chooser.getSelectedFile();
+                if (!archivo.getName().toLowerCase().endsWith(".png") && !archivo.getName().toLowerCase().endsWith(".jpg")) {
+                    archivo = new File(archivo.getParentFile(), archivo.getName() + ".png");
+                }
+                try {
+                    javax.imageio.ImageIO.write(imgResult[0], "png", archivo);
+                    JOptionPane.showMessageDialog(dialog, "Imagen guardada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialog, "Error al guardar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        JRootPane root = dialog.getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "cerrar");
+        am.put("cerrar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { dialog.dispose(); }
+        });
+        im.put(KeyStroke.getKeyStroke("control O"), "cargar");
+        am.put("cargar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { btnImg.doClick(); }
+        });
+        im.put(KeyStroke.getKeyStroke("control S"), "guardar");
+        am.put("guardar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { if (btnGuardar.isEnabled()) btnGuardar.doClick(); }
+        });
+
+        dialog.setVisible(true);
+    }
+
     class CustomScrollBarUI extends javax.swing.plaf.basic.BasicScrollBarUI {
         @Override
         protected void configureScrollBarColors() {
@@ -3060,4 +3292,5 @@ public class VentanaPrincipal extends JFrame {
             g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
         }
     }
-}
+
+    }
