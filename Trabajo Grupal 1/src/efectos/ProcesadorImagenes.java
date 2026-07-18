@@ -1260,4 +1260,107 @@ public class ProcesadorImagenes {
 		}
 		return salida;
 	}
+	public static BufferedImage AplicarFiltroSeparable(BufferedImage image, double[] kernel) {
+		BufferedImage convolucionHorizontal = convolucionHorizontal(image, kernel);
+		BufferedImage convolucionVertical = convolucionVertical(convolucionHorizontal, kernel);
+
+		return convolucionVertical;
+	}
+
+	public static BufferedImage convolucionHorizontal(BufferedImage image, double[] kernel) {
+		int width = image.getWidth();
+		int height = image.getHeight();
+		BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+		int kernelRadius = kernel.length / 2;
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				double r = 0, g = 0, b = 0;
+
+				for (int k = -kernelRadius; k <= kernelRadius; k++) {
+					int pixelX = Math.min(Math.max(x + k, 0), width - 1);
+					int pixelColor = image.getRGB(pixelX, y);
+
+					r += ((pixelColor >> 16) & 0xFF) * kernel[k + kernelRadius];
+					g += ((pixelColor >> 8) & 0xFF) * kernel[k + kernelRadius];
+					b += (pixelColor & 0xFF) * kernel[k + kernelRadius];
+				}
+
+				int newPixelColor = ((int) r << 16) | ((int) g << 8) | (int) b;
+				result.setRGB(x, y, newPixelColor);
+			}
+		}
+
+		return result;
+	}
+
+	public static BufferedImage convolucionVertical(BufferedImage image, double[] kernel) {
+		int width = image.getWidth();
+		int height = image.getHeight();
+		BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+		int kernelRadius = kernel.length / 2;
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				double r = 0, g = 0, b = 0;
+
+				for (int k = -kernelRadius; k <= kernelRadius; k++) {
+					int pixelY = Math.min(Math.max(y + k, 0), height - 1);
+					int pixelColor = image.getRGB(x, pixelY);
+
+					r += ((pixelColor >> 16) & 0xFF) * kernel[k + kernelRadius];
+					g += ((pixelColor >> 8) & 0xFF) * kernel[k + kernelRadius];
+					b += (pixelColor & 0xFF) * kernel[k + kernelRadius];
+				}
+
+				int newPixelColor = ((int) r << 16) | ((int) g << 8) | (int) b;
+				result.setRGB(x, y, newPixelColor);
+			}
+		}
+
+		return result;
+	}
+
+	public static BufferedImage bufferAcumulacion(BufferedImage imagen, float factor) {
+		validar(imagen);
+		int ancho = imagen.getWidth();
+		int alto = imagen.getHeight();
+		BufferedImage resultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+
+		float[] bufferR = new float[ancho * alto];
+		float[] bufferG = new float[ancho * alto];
+		float[] bufferB = new float[ancho * alto];
+
+		// GL_LOAD
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int index = y * ancho + x;
+				int pixel = imagen.getRGB(x, y);
+				bufferR[index] = (pixel >> 16) & 0xFF;
+				bufferG[index] = (pixel >> 8) & 0xFF;
+				bufferB[index] = pixel & 0xFF;
+			}
+		}
+
+		// GL_MULT
+		for (int i = 0; i < bufferR.length; i++) {
+			bufferR[i] *= factor;
+			bufferG[i] *= factor;
+			bufferB[i] *= factor;
+		}
+
+		// GL_RETURN
+		for (int y = 0; y < alto; y++) {
+			for (int x = 0; x < ancho; x++) {
+				int index = y * ancho + x;
+				int r = Math.max(0, Math.min(255, (int) bufferR[index]));
+				int g = Math.max(0, Math.min(255, (int) bufferG[index]));
+				int b = Math.max(0, Math.min(255, (int) bufferB[index]));
+				resultado.setRGB(x, y, (r << 16) | (g << 8) | b);
+			}
+		}
+		return resultado;
+	}
 }

@@ -15,11 +15,10 @@ public class Main {
     public static void main(String[] args) {
         // Workaround para fallos intermitentes del JFileChooser en Windows.
         System.setProperty("sun.awt.shell.disableFileChooserSpeedFix", "true");
-      
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-         
+
         }
 
         SwingUtilities.invokeLater(() -> {

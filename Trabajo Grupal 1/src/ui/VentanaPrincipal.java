@@ -337,43 +337,49 @@ public class VentanaPrincipal extends JFrame {
                 BorderFactory.createLineBorder(C_BORDE),
                 new EmptyBorder(8, 8, 8, 8)));
 
-        JLabel titulo = new JLabel("Exposiciones");
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        titulo.setForeground(C_ACENTO2);
+        JLabel titulo = new JLabel("MÓDULOS 3D / HARDWARE");
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        titulo.setForeground(new Color(107, 125, 179));
         titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel descripcion = new JLabel("Grupo 1 - Rasterización, Z-Buffer y Cubos 3D");
+        JLabel descripcion = new JLabel("Técnicas avanzadas de renderizado");
         descripcion.setFont(new Font("Segoe UI", Font.PLAIN, 10));
         descripcion.setForeground(C_TEXTO_DIM);
         descripcion.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JButton btnGrupo1 = crearBoton("Grupo 1", C_ACENTO2);
+        JButton btnGrupo1 = crearBoton("Rasterización 3D", C_ACENTO2);
         btnGrupo1.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnGrupo1.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        btnGrupo1.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         btnGrupo1.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnGrupo1.addActionListener(e -> abrirGrupo1());
 
-        JButton btnGrupo3 = crearBoton("Grupo 3", C_ACENTO2);
+        JButton btnGrupo3 = crearBoton("Aceleración OpenGL", C_ACENTO2);
         btnGrupo3.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnGrupo3.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        btnGrupo3.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         btnGrupo3.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnGrupo3.addActionListener(e -> mostrarDialogoGrupo3());
 
-        JButton btnGrupo9 = crearBoton("Grupo 9", C_ACENTO2);
+        JButton btnGrupo9 = crearBoton("Prueba de Profundidad", C_ACENTO2);
         btnGrupo9.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnGrupo9.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        btnGrupo9.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         btnGrupo9.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnGrupo9.addActionListener(e -> mostrarDialogoGrupo9());
 
-        JButton btnGrupo2 = crearBoton("Grupo 2", C_ACENTO2);
+        JButton btnGrupo2 = crearBoton("Proyección W-Bufer", C_ACENTO2);
         btnGrupo2.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnGrupo2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        btnGrupo2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         btnGrupo2.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnGrupo2.addActionListener(e -> mostrarDialogoGrupo2());
 
-        JButton btnGrupo8 = crearBoton("Grupo 8", C_ACENTO2);
+        JButton btnGrupo7 = crearBoton("Buffer Acumulación", C_ACENTO2);
+        btnGrupo7.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnGrupo7.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        btnGrupo7.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnGrupo7.addActionListener(e -> mostrarDialogoGrupo7());
+
+        JButton btnGrupo8 = crearBoton("Prueba de Fragmentos", C_ACENTO2);
         btnGrupo8.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnGrupo8.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        btnGrupo8.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         btnGrupo8.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btnGrupo8.addActionListener(e -> mostrarDialogoGrupo8());
 
@@ -386,6 +392,8 @@ public class VentanaPrincipal extends JFrame {
         card.add(btnGrupo2);
         card.add(Box.createVerticalStrut(6));
         card.add(btnGrupo3);
+        card.add(Box.createVerticalStrut(6));
+        card.add(btnGrupo7);
         card.add(Box.createVerticalStrut(6));
         card.add(btnGrupo8);
         card.add(Box.createVerticalStrut(6));
@@ -402,6 +410,7 @@ public class VentanaPrincipal extends JFrame {
                 "Convolución Manual",
                 "Convolución Op",
                 "Convolución Amanecer ×10",
+                "Filtro Separable",
                 " COLOR",
                 "Blanco y Negro",
                 "Escala de Grises",
@@ -823,6 +832,31 @@ public class VentanaPrincipal extends JFrame {
             case "Convolución Amanecer ×10" -> {
                 panelParams.add(labelParam("Genera 10 imágenes con"));
                 panelParams.add(labelParam("intensidad 0% → 100%"));
+        JRootPane root = btnVerAmanecer.getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "cerrar");
+        am.put("cerrar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                btnVerAmanecer.dispose();
+            }
+        });
+
+        im.put(KeyStroke.getKeyStroke("control O"), "cargar");
+        am.put("cargar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (btnImg != null) btnImg.doClick();
+            }
+        });
+
+        im.put(KeyStroke.getKeyStroke("control S"), "guardar");
+        am.put("guardar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (btnGuardar != null && btnGuardar.isEnabled()) btnGuardar.doClick();
+            }
+        });
+
                 btnVerAmanecer.setVisible(true);
             }
             case "Brillo por Canal" -> {
@@ -1051,6 +1085,7 @@ public class VentanaPrincipal extends JFrame {
             case "Copiar Imagen" -> ProcesadorImagenes.copiarImagen(imagenOriginal);
             case "Convolución Manual" -> ProcesadorImagenes.convolucionManual(imagenOriginal, kernelSeleccionado2D());
             case "Convolución Op" -> ProcesadorImagenes.convolucionOp(imagenOriginal, kernelSeleccionado1D());
+            case "Filtro Separable" -> ProcesadorImagenes.AplicarFiltroSeparable(imagenOriginal, new double[]{1.0/4.0, 2.0/4.0, 1.0/4.0});
             case "Convolución Amanecer ×10" -> {
                 imagenesAmanecer = ProcesadorImagenes.convolucionAmanecer(imagenOriginal);
                 SwingUtilities.invokeLater(() -> btnVerAmanecer.setVisible(true));
@@ -1659,6 +1694,13 @@ public class VentanaPrincipal extends JFrame {
         SwingUtilities.invokeLater(() -> {
             try {
                 efectos.exposiciones.grupo1.Main ventanaGrupo1 = new efectos.exposiciones.grupo1.Main();
+                JRootPane root = ventanaGrupo1.getRootPane();
+                InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+                ActionMap am = root.getActionMap();
+                im.put(KeyStroke.getKeyStroke("ESCAPE"), "cerrar");
+                am.put("cerrar", new AbstractAction() {
+                    public void actionPerformed(ActionEvent e) { ventanaGrupo1.dispose(); }
+                });
                 ventanaGrupo1.setVisible(true);
                 actualizarEstado("exito", "Exposición grupo 1 abierta.");
             } catch (Throwable e) {
@@ -1848,7 +1890,7 @@ public class VentanaPrincipal extends JFrame {
         JButton btnImg1 = crearBoton("Cargar Imagen 1", C_ACENTO);
         JButton btnImg2 = crearBoton("Cargar Imagen 2", C_ACENTO2);
         JButton btnAplicarG9 = crearBoton("Aplicar Filtro", C_EXITO);
-        JButton btnGuardarG9 = crearBoton("Guardar Resultado", C_TEXTO);
+        JButton btnGuardarG9 = crearBoton("Guardar Resultado", C_EXITO);
         btnGuardarG9.setEnabled(false);
 
         final BufferedImage[] imgs = new BufferedImage[2];
@@ -2004,6 +2046,21 @@ public class VentanaPrincipal extends JFrame {
         leftPanel.add(panelAcciones, BorderLayout.CENTER);
 
         dialog.add(leftPanel, BorderLayout.WEST);
+        JRootPane root = dialog.getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "cerrar");
+        am.put("cerrar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { dialog.dispose(); }
+        });
+        im.put(KeyStroke.getKeyStroke("control O"), "cargar");
+        am.put("cargar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { btnImg1.doClick(); }
+        });
+        im.put(KeyStroke.getKeyStroke("control S"), "guardar");
+        am.put("guardar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { if (btnGuardar.isEnabled()) btnGuardar.doClick(); }
+        });
         dialog.setVisible(true);
     }
 
@@ -2146,7 +2203,7 @@ public class VentanaPrincipal extends JFrame {
         scrollFiltros.setPreferredSize(new Dimension(260, 160));
 
         JButton btnImgTex = crearBoton("Cargar Textura", C_ACENTO);
-        JButton btnGuardar = crearBoton("Guardar Resultado", C_TEXTO);
+        JButton btnGuardar = crearBoton("Guardar Resultado", C_EXITO);
         btnGuardar.setEnabled(false);
         
         final BufferedImage[] texturaLocal = new BufferedImage[1];
@@ -2255,6 +2312,21 @@ public class VentanaPrincipal extends JFrame {
 
         dialog.add(leftPanel, BorderLayout.WEST);
         
+        JRootPane root = dialog.getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "cerrar");
+        am.put("cerrar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { dialog.dispose(); }
+        });
+        im.put(KeyStroke.getKeyStroke("control O"), "cargar");
+        am.put("cargar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { btnImgTex.doClick(); }
+        });
+        im.put(KeyStroke.getKeyStroke("control S"), "guardar");
+        am.put("guardar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { if (btnGuardar.isEnabled()) btnGuardar.doClick(); }
+        });
         dialog.setVisible(true);
     }
 
@@ -2370,6 +2442,13 @@ public class VentanaPrincipal extends JFrame {
         barra.addMouseListener(ma);
         barra.addMouseMotionListener(ma);
 
+        JRootPane root = dialog.getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "cerrar");
+        am.put("cerrar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { dialog.dispose(); }
+        });
         dialog.setVisible(true);
     }
 
@@ -2508,7 +2587,7 @@ public class VentanaPrincipal extends JFrame {
 
         JButton btnImg1 = crearBoton("Cargar Imagen 1", C_ACENTO);
         JButton btnImg2 = crearBoton("Cargar Imagen 2", C_ACENTO2);
-        JButton btnGuardar = crearBoton("Guardar Resultado", C_TEXTO);
+        JButton btnGuardar = crearBoton("Guardar Resultado", C_EXITO);
         btnGuardar.setEnabled(false);
 
         JSlider sliderRadio = new JSlider(50, 1000, 300);
@@ -2686,6 +2765,284 @@ public class VentanaPrincipal extends JFrame {
 
         dialog.add(leftPanel, BorderLayout.WEST);
         
+        JRootPane root = dialog.getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "cerrar");
+        am.put("cerrar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { dialog.dispose(); }
+        });
+        im.put(KeyStroke.getKeyStroke("control O"), "cargar");
+        am.put("cargar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { btnImg.doClick(); }
+        });
+        im.put(KeyStroke.getKeyStroke("control S"), "guardar");
+        am.put("guardar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { if (btnGuardar.isEnabled()) btnGuardar.doClick(); }
+        });
+        dialog.setVisible(true);
+    }
+    
+    private void mostrarDialogoGrupo7() {
+        JDialog dialog = new JDialog(this, "Exposición Grupo 7", true);
+        dialog.setSize(1280, 780);
+        dialog.setMinimumSize(new Dimension(960, 620));
+        dialog.setUndecorated(true);
+        dialog.setLocationRelativeTo(this);
+        dialog.getContentPane().setBackground(C_FONDO);
+        dialog.setLayout(new BorderLayout());
+
+        JPanel barra = new JPanel(new BorderLayout(0, 0));
+        barra.setBackground(C_PANEL);
+        barra.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        JPanel filaTitulo = new JPanel(new BorderLayout());
+        filaTitulo.setBackground(C_ACENTO.darker().darker());
+        filaTitulo.setBorder(new EmptyBorder(6, 12, 6, 8));
+
+        JLabel lblTitulo = new JLabel("ImaGen Studio — Grupo 7");
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTitulo.setForeground(Color.WHITE);
+
+        JPanel controles = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        controles.setBackground(C_ACENTO.darker().darker());
+        controles.setOpaque(true);
+
+        JButton btnClose = crearBotonVentanaIcono("close");
+        btnClose.addActionListener(e -> dialog.dispose());
+        controles.add(btnClose);
+
+        filaTitulo.add(lblTitulo, BorderLayout.WEST);
+        filaTitulo.add(controles, BorderLayout.EAST);
+
+        final Point[] dragPoint = new Point[1];
+        filaTitulo.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) { dragPoint[0] = e.getPoint(); }
+        });
+        filaTitulo.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                Point loc = dialog.getLocation();
+                dialog.setLocation(loc.x + e.getX() - dragPoint[0].x, loc.y + e.getY() - dragPoint[0].y);
+            }
+        });
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(C_PANEL);
+        header.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(0, 0, 1, 0, C_BORDE),
+                new EmptyBorder(10, 18, 10, 18)));
+
+        JLabel lblH = new JLabel("● ImaGen Studio");
+        lblH.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblH.setForeground(C_ACENTO2);
+
+        JLabel lblSub = new JLabel("  Buffer de Acumulación (Efectos Multiplicativos) — Grupo 7");
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblSub.setForeground(C_TEXTO_DIM);
+
+        JPanel izq = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        izq.setOpaque(false);
+        izq.add(lblH);
+        izq.add(lblSub);
+        
+        header.add(izq, BorderLayout.WEST);
+
+        barra.add(filaTitulo, BorderLayout.NORTH);
+        barra.add(header, BorderLayout.CENTER);
+        
+        dialog.add(barra, BorderLayout.NORTH);
+
+        JPanel centerPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        centerPanel.setBackground(C_FONDO);
+        centerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        
+        ImagePanel panelImg1 = new ImagePanel("Carga Imagen Original para comenzar");
+        ImagePanel panelResult = new ImagePanel("Aquí verás el resultado del Buffer");
+
+        JPanel cardImg1 = new JPanel(new BorderLayout(0, 6));
+        cardImg1.setBackground(C_CARD);
+        cardImg1.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(C_BORDE), new EmptyBorder(8, 8, 8, 8)));
+        JLabel lblImg1 = new JLabel("Imagen Original (GL_LOAD)");
+        lblImg1.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblImg1.setForeground(C_TEXTO);
+        cardImg1.add(lblImg1, BorderLayout.NORTH);
+        cardImg1.add(panelImg1, BorderLayout.CENTER);
+        
+        JPanel cardResult = new JPanel(new BorderLayout(0, 6));
+        cardResult.setBackground(C_CARD);
+        cardResult.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(C_BORDE), new EmptyBorder(8, 8, 8, 8)));
+        JLabel lblResult = new JLabel("Buffer de Acumulación (GL_RETURN)");
+        lblResult.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblResult.setForeground(C_ACENTO2);
+        cardResult.add(lblResult, BorderLayout.NORTH);
+        cardResult.add(panelResult, BorderLayout.CENTER);
+        
+        centerPanel.add(cardImg1);
+        centerPanel.add(cardResult);
+        dialog.add(centerPanel, BorderLayout.CENTER);
+
+        JPanel leftPanel = new JPanel(new BorderLayout(0, 6));
+        leftPanel.setBackground(C_PANEL);
+        leftPanel.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(0, 0, 0, 1, C_BORDE),
+                new EmptyBorder(15, 12, 15, 12)));
+        leftPanel.setPreferredSize(new Dimension(300, 0));
+
+        String[] filtros = {
+                "Factor: 1.0x",
+                "Factor: 0.75x",
+                "Factor: 0.50x",
+                "Factor: 0.25x"
+        };
+        
+        JList<String> listaModos = new JList<>(filtros);
+        listaModos.setBackground(C_CARD);
+        listaModos.setForeground(C_TEXTO);
+        listaModos.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        listaModos.setSelectionBackground(C_SELECCION);
+        listaModos.setSelectionForeground(Color.WHITE);
+        listaModos.setFixedCellHeight(30);
+        listaModos.setBorder(new EmptyBorder(0, 0, 0, 0));
+        listaModos.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                lbl.setBorder(new EmptyBorder(2, 10, 2, 0));
+                return lbl;
+            }
+        });
+        
+        JScrollPane scrollFiltros = new JScrollPane(listaModos);
+        scrollFiltros.setBorder(BorderFactory.createLineBorder(C_BORDE));
+        scrollFiltros.getViewport().setBackground(C_CARD);
+        scrollFiltros.setPreferredSize(new Dimension(280, 160));
+
+        JButton btnImg = crearBoton("Cargar Imagen", C_ACENTO);
+        JButton btnGuardar = crearBoton("Guardar Resultado", C_EXITO);
+        btnGuardar.setEnabled(false);
+        
+        final BufferedImage[] imgLocal = new BufferedImage[1];
+        final BufferedImage[] resultadoLocal = new BufferedImage[1];
+
+        Runnable ejecutarFiltro = () -> {
+            if (imgLocal[0] == null) return;
+            int sel = listaModos.getSelectedIndex();
+            float factor = 1.0f;
+            if (sel == 1) factor = 0.75f;
+            else if (sel == 2) factor = 0.50f;
+            else if (sel == 3) factor = 0.25f;
+
+            final float f = factor;
+            listaModos.setEnabled(false);
+            
+            SwingWorker<BufferedImage, Void> worker = new SwingWorker<>() {
+                @Override
+                protected BufferedImage doInBackground() throws Exception {
+                    return efectos.ProcesadorImagenes.bufferAcumulacion(imgLocal[0], f);
+                }
+                
+                @Override
+                protected void done() {
+                    try {
+                        BufferedImage res = get();
+                        resultadoLocal[0] = res;
+                        panelResult.setImagen(res);
+                        btnGuardar.setEnabled(true);
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(dialog, "Error al procesar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    } finally {
+                        listaModos.setEnabled(true);
+                    }
+                }
+            };
+            worker.execute();
+        };
+        
+        listaModos.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                ejecutarFiltro.run();
+            }
+        });
+
+        btnImg.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser(ultimoDirectorioCarga);
+            fc.setFileFilter(new FileNameExtensionFilter("Imágenes", "jpg", "png", "jpeg"));
+            if (fc.showOpenDialog(dialog) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    BufferedImage cargada = ImageIO.read(fc.getSelectedFile());
+                    imgLocal[0] = cargada;
+                    panelImg1.setImagen(cargada);
+                    ultimoDirectorioCarga = fc.getSelectedFile().getParentFile();
+                    if (listaModos.getSelectedIndex() == -1) listaModos.setSelectedIndex(0);
+                    else ejecutarFiltro.run();
+                } catch (Exception ex) {}
+            }
+        });
+        
+        btnGuardar.addActionListener(e -> {
+            if (resultadoLocal[0] == null) return;
+            JFileChooser chooser = new JFileChooser(ultimoDirectorioCarga);
+            chooser.setDialogTitle("Guardar imagen");
+            chooser.setFileFilter(new FileNameExtensionFilter("PNG", "png"));
+            if (chooser.showSaveDialog(dialog) == JFileChooser.APPROVE_OPTION) {
+                File archivo = chooser.getSelectedFile();
+                if (!archivo.getName().toLowerCase().endsWith(".png")) {
+                    archivo = new File(archivo.getParentFile(), archivo.getName() + ".png");
+                }
+                try {
+                    ImageIO.write(resultadoLocal[0], "png", archivo);
+                    JOptionPane.showMessageDialog(dialog, "Guardado exitoso");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialog, "Error al guardar");
+                }
+            }
+        });
+
+        JPanel panelBotones = new JPanel();
+        panelBotones.setLayout(new BoxLayout(panelBotones, BoxLayout.Y_AXIS));
+        panelBotones.setBackground(C_PANEL);
+        panelBotones.add(filaCompleta(btnImg));
+        panelBotones.add(Box.createVerticalStrut(10));
+
+        JPanel panelAcciones = new JPanel();
+        panelAcciones.setLayout(new BoxLayout(panelAcciones, BoxLayout.Y_AXIS));
+        panelAcciones.setOpaque(false);
+        panelAcciones.add(panelBotones);
+        panelAcciones.add(Box.createVerticalGlue());
+        panelAcciones.add(filaCompleta(btnGuardar));
+
+        leftPanel.add(scrollFiltros, BorderLayout.NORTH);
+        leftPanel.add(panelAcciones, BorderLayout.CENTER);
+
+        dialog.add(leftPanel, BorderLayout.WEST);
+        
+        JRootPane root = dialog.getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "cerrar");
+        am.put("cerrar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                dialog.dispose();
+            }
+        });
+
+        im.put(KeyStroke.getKeyStroke("control O"), "cargar");
+        am.put("cargar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                btnImg.doClick();
+            }
+        });
+
+        im.put(KeyStroke.getKeyStroke("control S"), "guardar");
+        am.put("guardar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (btnGuardar.isEnabled()) btnGuardar.doClick();
+            }
+        });
+
         dialog.setVisible(true);
     }
 
