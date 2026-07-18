@@ -832,31 +832,6 @@ public class VentanaPrincipal extends JFrame {
             case "Convolución Amanecer ×10" -> {
                 panelParams.add(labelParam("Genera 10 imágenes con"));
                 panelParams.add(labelParam("intensidad 0% → 100%"));
-        JRootPane root = btnVerAmanecer.getRootPane();
-        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        ActionMap am = root.getActionMap();
-
-        im.put(KeyStroke.getKeyStroke("ESCAPE"), "cerrar");
-        am.put("cerrar", new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                btnVerAmanecer.dispose();
-            }
-        });
-
-        im.put(KeyStroke.getKeyStroke("control O"), "cargar");
-        am.put("cargar", new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                if (btnImg != null) btnImg.doClick();
-            }
-        });
-
-        im.put(KeyStroke.getKeyStroke("control S"), "guardar");
-        am.put("guardar", new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                if (btnGuardar != null && btnGuardar.isEnabled()) btnGuardar.doClick();
-            }
-        });
-
                 btnVerAmanecer.setVisible(true);
             }
             case "Brillo por Canal" -> {
@@ -2774,7 +2749,7 @@ public class VentanaPrincipal extends JFrame {
         });
         im.put(KeyStroke.getKeyStroke("control O"), "cargar");
         am.put("cargar", new AbstractAction() {
-            public void actionPerformed(ActionEvent e) { btnImg.doClick(); }
+            public void actionPerformed(ActionEvent e) { btnImg1.doClick(); }
         });
         im.put(KeyStroke.getKeyStroke("control S"), "guardar");
         am.put("guardar", new AbstractAction() {
